@@ -1,0 +1,44 @@
+﻿#LoginMain {
+    position: absolute;
+    width: 384px;
+    height: 400px;
+    top: calc(50% - 200px);
+    left: calc(50% - 192px);
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 16px 16px;
+    justify-content: center;
+    align-content: center;
+}
+#LoginBlock {
+    width: 100%;
+    text-align: center;
+}
+#LoginButton {
+    margin: 16px;
+    font-size: 24px !important;
+}
+#Message {
+    width: 100%;
+    display: block;
+    text-align: center;
+    color: red;
+}
+span {
+    font-size: 18px;
+}
+h1 {
+    margin: 32px;
+}
+main {
+    text-align: center;
+}
+.InputBlock {
+    margin: 16px 16px 16px 16px;
+}
+.InputBlock > span {
+    width: 100%;
+}
+.InputBlock > input {
+    width: 100%;
+}

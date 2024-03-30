@@ -1,0 +1,69 @@
+﻿@page "/UserManager"
+@using WebServerManager.Components
+
+<link href="/css/UserManager.css" rel="stylesheet" />
+
+<div id="Main">
+	<div id="Manager">
+		<div id="UserActions">
+			<button id="NewUser" @onclick=@(() => CurrentSubWindow = WindowType.AddUser)>New user...</button>
+			<button id="ChangePassword" @onclick=@(() => CurrentSubWindow = WindowType.ChangePassword) disabled=@(Selected.Count != 1)>Change password...</button>
+			<button id="ChangeUserName" @onclick=@(() => CurrentSubWindow = WindowType.ChangeUsername) disabled=@(Selected.Count != 1)>Change user name...</button>
+			<button id="Remove" disabled=@(Selected.Count == 0) @onclick=RemoveUsers>Remove</button>
+			<button id="MarkAsSuperUser" @onclick=MarkUsersAsSuperUser disabled=@(Selected.Count == 0)>Mark as super user</button>
+			<button id="MarkAsNormalUser" @onclick=MarkUsersAsNormalUser disabled=@(Selected.Count == 0)>Mark as normal user</button>
+		</div>
+		@if (!string.IsNullOrEmpty(Message))
+		{
+			<label id="Error">@Message</label>
+		}
+		<table id="Users">
+			<tr id="Headers">
+				<th class="Selection">Select</th>
+				<th class="IsSuperUser">Is Super User</th>
+				<th class="Name">Name</th>
+			</tr>
+			@foreach (var pair in Manager.Users)
+			{
+				<tr class="User">
+					<td class="Selection"><CheckBox onchange="@((bool val) => RemoveOrAdd(val, pair.Key))" ValueSetter="ValueSetter" /></td>
+					<td class="IsSuperUser">@(Manager.SuperUsers.Contains(pair.Key) ? "Yes" : "No")</td>
+					<td class="Name">@pair.Key</td>
+				</tr>
+			}
+		</table>
+	</div>
+</div>
+
+<div id="SubWindow" @onclick=CloseSubWindow style="@($"display:{(CurrentSubWindow == WindowType.None ? "none" : "flex")}")">
+	@switch (CurrentSubWindow)
+	{
+		case WindowType.AddUser:
+			<div id="AddUserWindow" class="Windows" @onclick:stopPropagation=true>
+				<img class="WindowClose" @onclick="CloseSubWindow" src="/Assets/Generic/Icons/Close.svg"></img>
+				<input type="text" id="AddUserUsername" placeholder="Username" @bind=NewUsername/>
+				<input type="password" id="AddUserPassword" placeholder="Password" @bind=NewPassword/>
+				<button id="AddUserButton" @onclick=AddUserSubmit>Add</button>
+			</div>
+			break;
+		case WindowType.ChangePassword:
+			SubWindowSingleUserSelection = Selected[0];
+			<div id="ChangePasswordWindow" class="Windows" @onclick:stopPropagation=true>
+				<img class="WindowClose" @onclick="CloseSubWindow" src="/Assets/Generic/Icons/Close.svg"></img>
+				<input type="password" id="NewPassword" placeholder="Password" @bind=NewPassword />
+				<button id="ChangePasswordButton" @onclick=ChangePasswordForUser>Change</button>
+			</div>
+			break;
+		case WindowType.ChangeUsername:
+			SubWindowSingleUserSelection = Selected[0];
+			<div id="ChangePasswordWindow" class="Windows" @onclick:stopPropagation=true>
+				<img class="WindowClose" @onclick="CloseSubWindow" src="/Assets/Generic/Icons/Close.svg"></img>
+				<input type="text" id="NewUsername" placeholder="Username" @bind=NewUsername />
+				<button id="ChangeUsernameButton" @onclick=ChangeUsernameForUser>Change</button>
+			</div>
+			break;
+		case WindowType.None:
+		default:
+			break;
+	}
+</div>

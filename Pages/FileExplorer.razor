@@ -1,0 +1,113 @@
+﻿@page "/FileExplorer"
+@using Microsoft.AspNetCore.Components.Forms
+@using WebServerManager.Components
+
+<link href="/css/FileExplorer.css" rel="stylesheet" />
+<script>
+	function openWindow(path) {
+		window.open(path, "_blank");
+	}
+</script>
+<title>WebServerManager File Explorer</title>
+
+<div id="Main">
+	<div id="Explorer">
+		<div id="FileActions">
+			<button id="GoTo" @onclick=GoTo>Go to...</button>
+			<button id="NewFolder" @onclick=NewFolder>New Folder</button>
+			<button id="NewFile" @onclick=NewFile>New File</button>
+			<button id="Delete" @onclick=DeleteSelected disabled=@(Selected.Count == 0)>Delete</button>
+			<button id="Rename" @onclick=Rename disabled=@(Selected.Count != 1)>Rename</button>
+			<button id="MoveTo" @onclick=MoveTo disabled=@(Selected.Count == 0)>Move to...</button>
+			<button id="CopyTo" @onclick=CopyTo disabled=@(Selected.Count == 0)>Copy to...</button>
+			<button id="PutHere" @onclick=PutHere disabled=@(CopyOrMoveSource.Count == 0)>Put here</button>
+			<InputFile id="UploadFile" OnChange="UploadFile" multiple />
+			<label for="UploadFile">Upload file...</label>
+			<button id="DownloadFile" @onclick=DownloadFile disabled=@(Selected.Count == 0)>Download file...</button>
+		</div>
+		@if (!string.IsNullOrEmpty(LastMessage))
+		{
+			<label id="Error">@LastMessage</label>
+		}
+		<table id="Files">
+			<tr id="Headers">
+				<th class="Selection">Select</th>
+				<th class="Icon">Icon</th>
+				<th class="Name" title="@NameToolTip">Name</th>
+				<th class="Size" title="@SizeToolTip">Size</th>
+				<th class="Date">Modification Date</th>
+				<th class="Date">Creation Date</th>
+			</tr>
+			@if (this.Parent is not null)
+			{
+				<tr class="SubDirectories">
+					<td class="Selection"><input type="checkbox" disabled /></td>
+					<td class="Icon"><img class="Icon" src="@Manager.Config.DirectoryIconPath" /></td>
+					<td class="Name" title="@NameToolTip" @onclick=@(() => this.CurrentDirectory = this.Parent!)>..</td>
+					<td class="Size" title="@SizeToolTip" @onclick="@(() => ViewDetails(this.Parent))">(Folder)</td>
+					<td class="Date">@this.Parent!.LastWriteTime.ToString()</td>
+					<td class="Date">@this.Parent!.CreationTime.ToString()</td>
+				</tr>
+			}
+			@foreach (var dir in ChildDirectories)
+			{
+				<tr class="SubDirectories">
+					<td class="Selection"><CheckBox onchange="@((bool val) => RemoveOrAdd(val, dir))" ValueSetter="ValueSetter" /></td>
+					<td class="Icon"><img class="Icon" src="@Manager.Config.DirectoryIconPath" /></td>
+					<td class="Name" title="@NameToolTip" @onclick=@(() => this.CurrentDirectory = dir)>@dir.Name</td>
+					<td class="Size" title="@SizeToolTip" @onclick="@(() => ViewDetails(dir))">(Folder)</td>
+					<td class="Date">@dir.LastWriteTime.ToString()</td>
+					<td class="Date">@dir.CreationTime.ToString()</td>
+				</tr>
+			}
+			@foreach (var file in ChildFiles)
+			{
+				<tr class="SubFiles">
+					<td class="Selection"><CheckBox onchange="@((bool val) => RemoveOrAdd(val, file))" ValueSetter="ValueSetter" /></td>
+					<td class="Icon"><img class="Icon" src="@Manager.Config.UnidentifiedIconPath" /></td>
+					<td class="Name" title="@NameToolTip">@file.Name</td>
+					<td class="Size" title="@SizeToolTip" @onclick="@(() => ViewDetails(file))">@Utils.FileSizeFormatter(file.Length)</td>
+					<td class="Date">@file.LastWriteTime.ToString()</td>
+					<td class="Date">@file.CreationTime.ToString()</td>
+				</tr>
+			}
+		</table>
+	</div>
+</div>
+<div id="SubWindow" @onclick=CloseSubWindow style="@($"display:{(SubWindow == WindowType.None ? "none" : "flex")}")">
+	@switch (SubWindow)
+	{
+		case WindowType.InputField:
+			<div id="InputFieldWindow" class="Windows" @onclick:stopPropagation=true>
+				<img id="ButtonCloudSaveBoxClose" class="WindowClose" @onclick="CloseSubWindow" src="/Assets/Generic/Icons/Close.svg"></img>
+				<form @onsubmit=InputFieldSubmit>
+					<input type="text" id="InputField" placeholder="Input" @bind=InputFieldBind />
+					<button id="InputFieldSubmit" @onclick=InputFieldSubmit>Submit!</button>
+				</form>
+			</div>
+			break;
+		case WindowType.Details:
+			if (DetailsSelected is not null)
+			{
+				<div id="DetailsWindows" class="Windows" @onclick:stopPropagation=true>
+					<img id="ButtonCloudSaveBoxClose" class="WindowClose" @onclick="CloseSubWindow" src="/Assets/Generic/Icons/Close.svg"></img>
+					<p>Type: @(DetailsSelected is DirectoryInfo ? "Directory" : "File")</p>
+					@if (Files >= 0 && Folders >= 0)
+					{
+						<p>Contains: @Folders directory(s), @Files file(s)</p>
+					}
+					<p>Name: @DetailsSelected.Name</p>
+					<p>Full path: @DetailsSelected.FullName</p>
+					<p>Size: @(Size >= 0 ? Utils.FileSizeFormatter(Size, true) : "Calculating...")</p>
+					<p>Size in bytes: @(Size >= 0 ? $"{Size} Bytes" : "Calculating...")</p>
+					<p>Creation date: @DetailsSelected.CreationTime</p>
+					<p>Last modification date: @DetailsSelected.LastWriteTime</p>
+					<p>Last access date: @DetailsSelected.LastAccessTime</p>
+				</div>
+			}
+			break;
+		case WindowType.None:
+		default:
+			break;
+	}
+</div>

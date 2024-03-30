@@ -1,0 +1,55 @@
+﻿@code {
+	private EventHandler<bool> DefaultSetValueEvent { get; init; }
+	private bool _bind;
+	private ValueSet? _valueSetter;
+
+	public bool Binding
+	{
+		get => _bind;
+		set
+		{
+			this._bind = value;
+			if (OnChange is not null)
+				OnChange(value);
+		}
+	}
+
+	[Parameter]
+	public bool Disabled { get; set; } = false;
+
+	[Parameter]
+	public Action<bool>? OnChange { get; set; }
+
+	[Parameter]
+	public ValueSet? ValueSetter
+	{
+		get => this._valueSetter;
+		set
+		{
+			if (this._valueSetter is not null)
+				this._valueSetter.SetValueAllEvent -= DefaultSetValueEvent;
+			this._valueSetter = value;
+			if (this._valueSetter is not null)
+				this._valueSetter.SetValueAllEvent += DefaultSetValueEvent;
+		}
+	}
+
+	public CheckBox()
+	{
+		DefaultSetValueEvent = (_, val) => InvokeAsync(() => Binding = val);
+	}
+	~CheckBox()
+	{
+		if (this._valueSetter is not null)
+			this._valueSetter.SetValueAllEvent -= DefaultSetValueEvent;
+	}
+
+	public class ValueSet
+	{
+		public event EventHandler<bool>? SetValueAllEvent;
+		public void Invoke(object? obj, bool value)
+			=> SetValueAllEvent?.Invoke(obj, value);
+	}
+}
+
+<input type="checkbox" disabled=@Disabled @bind=Binding />

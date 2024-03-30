@@ -1,0 +1,67 @@
+﻿@keyframes WindowBlur {
+    0% {
+        backdrop-filter: blur(0.0px);
+        filter: opacity(0);
+    }
+
+    25% {
+        backdrop-filter: blur(0.5px);
+        filter: opacity(0.25);
+    }
+
+    75% {
+        backdrop-filter: blur(2.25px);
+        filter: opacity(0.8);
+    }
+
+    100% {
+        backdrop-filter: blur(3px);
+        filter: opacity(1);
+    }
+}
+
+#SubWindow {
+    margin: auto auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    animation: WindowBlur;
+    animation-duration: 0.1s;
+    animation-fill-mode: forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    /*transform: translate(-50%, -50%);*/
+    /*backdrop-filter: blur(var(--ButtonBlurRadius));*/
+}
+
+.Windows {
+    /*position: absolute;
+    transform: translate(-50%, -50%) translateY(1%);
+    top: 50%;
+    left: 50%;*/
+    backdrop-filter: blur(var(--ButtonBlurRadius));
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid;
+    border-color: var(--BorderColor);
+    border-radius: 3px;
+}
+
+.WindowClose {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    filter: invert();
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+#AddUserWindow {
+    width: 256px;
+    height: 256px;
+}

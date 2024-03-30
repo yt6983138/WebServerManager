@@ -1,0 +1,24 @@
+﻿@page "/Login"
+
+<link href="/css/Login.css" rel="stylesheet" />
+<h1>WebServerManager Login</h1> 
+<title>WebServerManager Login</title>
+
+<div id="LoginMain">
+	<div id="Username" class="InputBlock">
+		<span>Username*</span>
+		<input type="text" @bind=Username />
+	</div>
+	<div id="Password" class="InputBlock">
+		<span>Password*</span>
+		<input type="password" @bind=Password />
+	</div>
+	<div id="ExpiresInMin" class="InputBlock">
+		<span>Expires (In minutes)*</span>
+		<input type="number" @bind=ExpiresInMin />
+	</div>
+	<div id="LoginBlock">
+		<button id="LoginButton" @onclick=LoginEnter>Login</button>
+	</div>
+	<span id="Message">@Message</span>
+</div>
