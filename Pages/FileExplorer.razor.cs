@@ -31,6 +31,12 @@ public partial class FileExplorer
 	}
 	private const string SizeToolTip = "Click for details";
 	private const string NameToolTip = "Click to open";
+	private const string IconsRelativePath = "/Assets/FileExplorer/";
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+	private DirectoryInfo IconsPath { get; set; } // should only be assigned once
+	private List<(string, string)> AvailableIconNames { get; set; } // ^^ also no .png .svg extension etc
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	#endregion
 
 	#region Misc
@@ -71,9 +77,10 @@ public partial class FileExplorer
 	public string InputFieldBind { get; set; } = "";
 	public Action InputFieldSubmit { get; set; } = () => { };
 	public FileSystemInfo? DetailsSelected { get; set; }
+	private bool Summed { get; set; } = false;
 	private long Size = -1;
-	private int Files = -1;
-	private int Folders = -1;
+	private volatile int Files = -1;
+	private volatile int Folders = -1;
 	#endregion
 
 	#region Injection
@@ -86,6 +93,8 @@ public partial class FileExplorer
 	private NavigationManager NavigationManager { get; set; }
 	[Inject]
 	private ILogger<FileExplorer> Logger { get; set; }
+	[Inject]
+	private IWebHostEnvironment WebHostEnvironment { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	#endregion
 
@@ -117,6 +126,43 @@ public partial class FileExplorer
 			Selected.Remove(info);
 
 		StateHasChanged();
+	}
+	public void SumFolderSize(DirectoryInfo directory, ref long size, ref int files, ref int folders)
+	{
+		folders++;
+		try
+		{
+			foreach (var file in directory.GetFiles())
+			{
+				try
+				{
+					size += file.Length;
+					files++;
+				}
+				catch { }
+			}
+			foreach (var dir in directory.GetDirectories())
+			{
+				try
+				{
+					if (dir.LinkTarget != null)
+						continue;
+					SumFolderSize(dir, ref size, ref files, ref folders);
+				}
+				catch { }
+			}
+		}
+		catch { }
+		StateHasChanged();
+	}
+	public string GetIconRegardingToTheFileExtensionOrDefault(FileInfo fileInfo)
+	{
+		foreach ((string name, string extension) in AvailableIconNames)
+		{
+			if (fileInfo.Extension[1..].Equals(name, StringComparison.CurrentCultureIgnoreCase))
+				return IconsRelativePath + name + extension;
+		}
+		return IconsRelativePath + "Unknown.svg";
 	}
 	#endregion
 
@@ -287,6 +333,28 @@ public partial class FileExplorer
 			InputFieldSubmit = () => { };
 		};
 	}
+	public void ViewDetails(FileSystemInfo file)
+	{
+		SubWindow = WindowType.Details;
+		DetailsSelected = file;
+		Summed = false;
+		Size = -1;
+		Files = -1;
+		Folders = -1;
+		if (DetailsSelected is DirectoryInfo dInfo)
+		{
+			Task.Run(() => InvokeAsync(() =>
+			{
+				SumFolderSize(dInfo, ref Size, ref Files, ref Folders);
+				Summed = true;
+			}));
+		}
+		else
+		{
+			Size = ((FileInfo)DetailsSelected).Length;
+			Summed = true;
+		}
+	}
 
 	#region Download/Upload
 	public async void UploadFile(InputFileChangeEventArgs e)
@@ -430,58 +498,17 @@ public partial class FileExplorer
 
 	#endregion
 
-	public void ViewDetails(FileSystemInfo file)
-	{
-		SubWindow = WindowType.Details; 
-		DetailsSelected = file;
-		Size = -1;
-		Files = -1;
-		Folders = -1;
-		if (DetailsSelected is DirectoryInfo dInfo)
-		{
-			Task.Run(() => InvokeAsync(() =>
-			{
-				SumFolderSize(dInfo, ref Size, ref Files, ref Folders);
-			}));
-		}
-		else
-		{
-			Size = ((FileInfo)DetailsSelected).Length;
-		}
-	}
-	public void SumFolderSize(DirectoryInfo directory, ref long size, ref int files, ref int folders)
-	{
-		folders++;
-		try
-		{
-			foreach (var file in directory.GetFiles())
-			{
-				try
-				{
-					size += file.Length;
-					files++;
-					StateHasChanged();
-				}
-				catch { }
-			}
-			foreach (var dir in directory.GetDirectories())
-			{
-				try
-				{
-					if (dir.LinkTarget != null)
-						continue;
-					SumFolderSize(dir, ref size, ref files, ref folders);
-				}
-				catch { }
-			}
-		}
-		catch { }
-	}
 	protected override void OnInitialized()
 	{
 		CurrentDirectory = new(Manager.Config.FileExplorerDefaultStartPath);
 		if (Utils.CheckLogin(HttpContextAccessor))
 		{
+			IconsPath = new(Path.Combine(WebHostEnvironment.WebRootPath, IconsRelativePath[1..]));
+			
+			AvailableIconNames = IconsPath.GetFiles()
+				.Select(file => (Path.GetFileNameWithoutExtension(file.Name), file.Extension))
+				.ToList();
+
 			base.OnInitialized();
 			return;
 		}

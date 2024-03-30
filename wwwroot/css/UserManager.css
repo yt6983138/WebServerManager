@@ -20,6 +20,21 @@
     }
 }
 
+#UserActions {
+    padding: 16px;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+#Error {
+    padding: 8px;
+    margin: 16px 0px 16px 0px;
+    background-color: rgba(0, 0, 0, 0.25);
+    color: red
+}
+
+#Users {
+    margin: 16px;
+}
+
 #SubWindow {
     margin: auto auto;
     position: fixed;
@@ -62,6 +77,65 @@
 }
 
 #AddUserWindow {
-    width: 256px;
+    width: 384px;
     height: 256px;
+    align-items: center;
+    align-content: center;
+    justify-items: center;
+    justify-content: center;
+    display: flex;
+}
+#AddUserUsername {
+    position: absolute;
+    margin: 32px;
+    top: 16px
+}
+#AddUserPassword {
+    position: absolute;
+    margin: 32px;
+}
+#AddUserButton {
+    position: absolute;
+    bottom: 32px;
+    padding: 4px 8px 4px 8px;
+}
+
+#ChangePasswordWindow {
+    width: 384px;
+    height: 192px;
+    align-items: center;
+    align-content: center;
+    justify-items: center;
+    justify-content: center;
+    display: flex;
+}
+#NewPassword {
+    position: absolute;
+    margin: 32px;
+    top: 24px;
+}
+#ChangePasswordButton {
+    position: absolute;
+    bottom: 24px
+}
+
+#ChangeUsernameWindow {
+    width: 384px;
+    height: 192px;
+    align-items: center;
+    align-content: center;
+    justify-items: center;
+    justify-content: center;
+    display: flex;
+}
+
+#NewUsername {
+    position: absolute;
+    margin: 32px;
+    top: 24px;
+}
+
+#ChangeUsernameButton {
+    position: absolute;
+    bottom: 24px
 }

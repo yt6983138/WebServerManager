@@ -56,7 +56,7 @@
 			break;
 		case WindowType.ChangeUsername:
 			SubWindowSingleUserSelection = Selected[0];
-			<div id="ChangePasswordWindow" class="Windows" @onclick:stopPropagation=true>
+			<div id="ChangeUsernameWindow" class="Windows" @onclick:stopPropagation=true>
 				<img class="WindowClose" @onclick="CloseSubWindow" src="/Assets/Generic/Icons/Close.svg"></img>
 				<input type="text" id="NewUsername" placeholder="Username" @bind=NewUsername />
 				<button id="ChangeUsernameButton" @onclick=ChangeUsernameForUser>Change</button>

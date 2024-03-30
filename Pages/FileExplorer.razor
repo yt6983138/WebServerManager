@@ -25,10 +25,13 @@
 			<label for="UploadFile">Upload file...</label>
 			<button id="DownloadFile" @onclick=DownloadFile disabled=@(Selected.Count == 0)>Download file...</button>
 		</div>
-		@if (!string.IsNullOrEmpty(LastMessage))
-		{
-			<label id="Error">@LastMessage</label>
-		}
+		<div id="Infos">
+			<label id="CurrentPath">Current directory: @CurrentDirectory.FullName</label>
+			@if (!string.IsNullOrEmpty(LastMessage))
+			{
+				<label id="Error">@LastMessage</label>
+			}
+		</div>
 		<table id="Files">
 			<tr id="Headers">
 				<th class="Selection">Select</th>
@@ -64,7 +67,7 @@
 			{
 				<tr class="SubFiles">
 					<td class="Selection"><CheckBox onchange="@((bool val) => RemoveOrAdd(val, file))" ValueSetter="ValueSetter" /></td>
-					<td class="Icon"><img class="Icon" src="@Manager.Config.UnidentifiedIconPath" /></td>
+					<td class="Icon"><img class="Icon" src="@GetIconRegardingToTheFileExtensionOrDefault(file)" /></td>
 					<td class="Name" title="@NameToolTip">@file.Name</td>
 					<td class="Size" title="@SizeToolTip" @onclick="@(() => ViewDetails(file))">@Utils.FileSizeFormatter(file.Length)</td>
 					<td class="Date">@file.LastWriteTime.ToString()</td>
@@ -98,8 +101,8 @@
 					}
 					<p>Name: @DetailsSelected.Name</p>
 					<p>Full path: @DetailsSelected.FullName</p>
-					<p>Size: @(Size >= 0 ? Utils.FileSizeFormatter(Size, true) : "Calculating...")</p>
-					<p>Size in bytes: @(Size >= 0 ? $"{Size} Bytes" : "Calculating...")</p>
+					<p>Size: @Utils.FileSizeFormatter(Size, true) @(Summed ? "" : "(Calculating...)")</p>
+					<p>Size in bytes: @Size Bytes @(Summed ? "" : "(Calculating...)")</p>
 					<p>Creation date: @DetailsSelected.CreationTime</p>
 					<p>Last modification date: @DetailsSelected.LastWriteTime</p>
 					<p>Last access date: @DetailsSelected.LastAccessTime</p>
