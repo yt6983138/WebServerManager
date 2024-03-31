@@ -2,10 +2,12 @@ using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.JSInterop;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using WebServerManager.Components;
@@ -32,10 +34,12 @@ public partial class FileExplorer
 	private const string SizeToolTip = "Click for details";
 	private const string NameToolTip = "Click to open";
 	private const string IconsRelativePath = "/Assets/FileExplorer/";
+	private readonly static EventId EventId = new(114513, "FileOperation");
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	private DirectoryInfo IconsPath { get; set; } // should only be assigned once
 	private List<(string, string)> AvailableIconNames { get; set; } // ^^ also no .png .svg extension etc
+	private string Username { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	#endregion
 
@@ -187,6 +191,14 @@ public partial class FileExplorer
 				{
 					info2.MoveTo(Path.Combine(info2.Parent?.FullName ?? @"/", InputFieldBind));
 				}
+				Logger.LogInformation(
+					EventId, 
+					"The user {user} renamed item {oldName} at {path} to {newName}", 
+					Username, 
+					item.Name, 
+					Path.GetDirectoryName(item.FullName), 
+					InputFieldBind
+				);
 				LastMessage = "";
 			}
 			catch (Exception ex)
@@ -227,20 +239,40 @@ public partial class FileExplorer
 			{
 				foreach (var thing in CopyOrMoveSource)
 				{
+					string path = thing.FullName;
+
 					if (thing is DirectoryInfo dInfo)
 						dInfo.MoveTo(Path.Combine(currentPath, dInfo.Name));
 					else if (thing is FileInfo fInfo)
 						fInfo.MoveTo(Path.Combine(currentPath, fInfo.Name));
+					Logger.LogInformation(
+						EventId,
+						"The user {user} moved item {item} from {path1} to {path2}.",
+						Username,
+						thing.Name,
+						Path.GetDirectoryName(path),
+						CurrentDirectory.FullName
+					);
 				}
 			}
 			else if (CopyOrMove == OperationType.Copy)
 			{
 				foreach (var thing in CopyOrMoveSource)
 				{
+					string path = thing.FullName;
+
 					if (thing is DirectoryInfo dInfo)
 						dInfo.CopyAll(CurrentDirectory);
 					else if (thing is FileInfo fInfo)
 						fInfo.CopyTo(Path.Combine(currentPath, fInfo.Name));
+					Logger.LogInformation(
+						EventId,
+						"The user {user} copied item {item} from {path1} to {path2}.",
+						Username,
+						thing.Name,
+						Path.GetDirectoryName(path),
+						CurrentDirectory.FullName
+					);
 				}
 			}
 			CurrentDirectory = CurrentDirectory;
@@ -263,6 +295,13 @@ public partial class FileExplorer
 					info.Delete(true);
 				else thing.Delete();
 				LastMessage = "";
+				Logger.LogInformation(
+					EventId,
+					"The user {user} deleted item {item} at path {path}.",
+					Username,
+					thing.Name,
+					CurrentDirectory.FullName
+				);
 			}
 			catch (Exception ex)
 			{
@@ -303,6 +342,13 @@ public partial class FileExplorer
 			{
 				CurrentDirectory.CreateSubdirectory(InputFieldBind);
 				LastMessage = "";
+				Logger.LogInformation(
+					EventId,
+					"The user {user} made new folder {item} at path {path}.",
+					Username,
+					InputFieldBind,
+					CurrentDirectory.FullName
+				);
 			}
 			catch (Exception ex)
 			{
@@ -323,6 +369,13 @@ public partial class FileExplorer
 			{
 				File.Create(Path.Combine(CurrentDirectory.FullName, InputFieldBind)).Close();
 				LastMessage = "";
+				Logger.LogInformation(
+					EventId,
+					"The user {user} made new file {item} at path {path}.",
+					Username,
+					InputFieldBind,
+					CurrentDirectory.FullName
+				);
 			}
 			catch (Exception ex)
 			{
@@ -375,6 +428,13 @@ public partial class FileExplorer
 					await stream.ReadAsync(buffer);
 					using FileStream fs = new(Path.Combine(CurrentDirectory.FullName, file.Name), FileMode.Create, FileAccess.Write);
 					fs.Write(buffer);
+					Logger.LogInformation(
+						EventId,
+						"The user {user} uploaded item {item} to {path}.",
+						Username,
+						file.Name,
+						CurrentDirectory.FullName
+					);
 					return true;
 				}
 				catch
@@ -508,6 +568,8 @@ public partial class FileExplorer
 			AvailableIconNames = IconsPath.GetFiles()
 				.Select(file => (Path.GetFileNameWithoutExtension(file.Name), file.Extension))
 				.ToList();
+
+			Username = HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
 
 			base.OnInitialized();
 			return;

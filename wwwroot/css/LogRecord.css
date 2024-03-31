@@ -38,7 +38,7 @@
 #Logs {
     position: absolute;
     margin: 16px;
-    max-width: 100%;
+    max-width: calc(100% - 32px);
 }
 #LoadMoreRow > td {
     display: flex;
@@ -49,4 +49,7 @@
 }
 #LoadMoreButton {
     padding: 0px 8px 0px 8px;
+}
+td {
+    white-space: break-spaces;
 }

@@ -5,6 +5,7 @@ namespace WebServerManager.Pages;
 
 partial class Logout
 {
+	private readonly static EventId EventId = new(114511, "UserLogIO");
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	[Inject]
@@ -21,7 +22,7 @@ partial class Logout
 		{
 			string username = HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
 			Manager.ActiveTokens.Remove(username);
-			Logger.LogInformation("The user {username} logged out!", username);
+			Logger.LogInformation(EventId, "The user {username} logged out!", username);
 		}
 
 		NavigationManager.NavigateTo("/Login");

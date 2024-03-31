@@ -1,3 +1,21 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+<link href="/css/Index.css" rel="stylesheet" />
+
+<div id="Main">
+	<h1>WebServerManager Home</h1>
+	<div id="NormalTools" class="Tools">
+		<h2>Tools for normal user</h2>
+		@foreach (var item in NormalTools)
+		{
+			<button @onclick=@(() => NavigationManager.NavigateTo(item.Value, true))>@item.Key</button>
+		}
+	</div>
+	<div id="SuperTools" class="Tools">
+		<h2>Tools for super user</h2>
+		@foreach (var item in SuperTools)
+		{
+			<button @onclick=@(() => NavigationManager.NavigateTo(item.Value, true)) disabled="@(!IsSuperUser)">@item.Key</button>
+		}
+	</div>
+</div>

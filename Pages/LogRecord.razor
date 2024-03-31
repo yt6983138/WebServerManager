@@ -1,4 +1,5 @@
 ﻿@page "/LogRecord"
+@using yt6983138.Common;
 
 <link href="/css/LogRecord.css" rel="stylesheet" />
 <script>
@@ -9,7 +10,7 @@
 
 <div id="Main">
 	<div id="LogActions">
-		<button id="ExportButton" >Export</button>
+		<button id="ExportButton" @onclick=ExportAll>Export</button>
 	</div>
 	<div id="Infos">
 		@if (!string.IsNullOrEmpty(LastMessage))
@@ -21,10 +22,10 @@
 		<tr>
 			<th>Logs</th>
 		</tr>
-		@for (int i = 0; i < LoadCount * OneLoadLineCount && i < yt6983138.Common.Logger.AllLogs.Count; i++)
+		@for (int i = Logger.AllLogs.Count - 1; i >= Math.Max(Logger.AllLogs.Count - LoadCount * OneLoadLineCount, 0); i--)
 		{
 			<tr>
-				<td>@yt6983138.Common.Logger.AllLogs[i]</td>
+				<td>@Logger.AllLogs[i]</td>
 			</tr>
 		}
 		@if (LoadCount * OneLoadLineCount <= yt6983138.Common.Logger.AllLogs.Count)

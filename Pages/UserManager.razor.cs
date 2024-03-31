@@ -15,6 +15,7 @@ partial class UserManager
 		ChangeUsername
 	}
 	private const string OperationDone = "The operation has done successfully.";
+	private readonly static EventId EventId = new(114512, "UserManagent");
 	#endregion
 
 	#region Injection
@@ -96,7 +97,7 @@ partial class UserManager
 		Manager.Users.Add(NewUsername, passwordHash);
 		Manager.WriteUsers();
 		Message = OperationDone;
-		Logger.LogInformation("The user {username} added new user {anotherUser} with password {password}!", UserName, NewUsername, NewPassword);
+		Logger.LogInformation(EventId, "The user {username} added new user {anotherUser} with password {password}!", UserName, NewUsername, NewPassword);
 		ResetNewUsernameAndPassword();
 		Refresh();
 	}
@@ -109,7 +110,7 @@ partial class UserManager
 		}
 		Manager.WriteUsers();
 		Message = OperationDone;
-		Logger.LogInformation("User {username} removed user(s): [{users}].", UserName, string.Join(", ", Selected));
+		Logger.LogInformation(EventId, "User {username} removed user(s): [{users}].", UserName, string.Join(", ", Selected));
 		Refresh();
 	}
 	public void MarkUsersAsSuperUser()
@@ -120,7 +121,7 @@ partial class UserManager
 		}
 		Manager.WriteUsers();
 		Message = OperationDone;
-		Logger.LogInformation("User {username} marked user(s) as super user: [{users}].", UserName, string.Join(", ", Selected));
+		Logger.LogInformation(EventId, "User {username} marked user(s) as super user: [{users}].", UserName, string.Join(", ", Selected));
 		Refresh();
 	}
 	public void MarkUsersAsNormalUser()
@@ -131,7 +132,7 @@ partial class UserManager
 		}
 		Manager.WriteUsers();
 		Message = OperationDone;
-		Logger.LogInformation("User {username} marked user(s) as normal user: [{users}].", UserName, string.Join(", ", Selected));
+		Logger.LogInformation(EventId, "User {username} marked user(s) as normal user: [{users}].", UserName, string.Join(", ", Selected));
 		Refresh();
 	}
 	public void ChangePasswordForUser()
@@ -141,7 +142,7 @@ partial class UserManager
 		SubWindowSingleUserSelection = null;
 		Manager.WriteUsers();
 		Message = OperationDone;
-		Logger.LogInformation("User {username} changed password to {password} for user {newUser}.", UserName, NewPassword, NewUsername);
+		Logger.LogInformation(EventId, "User {username} changed password to {password} for user {newUser}.", UserName, NewPassword, NewUsername);
 		ResetNewUsernameAndPassword();
 		Refresh();
 	}
@@ -158,7 +159,7 @@ partial class UserManager
 		Manager.Users[NewUsername] = password;
 		Manager.WriteUsers();
 		Message = OperationDone;
-		Logger.LogInformation("User {username} changed username to {newUsername} for user {oldUsername}.", UserName, NewUsername, SubWindowSingleUserSelection);
+		Logger.LogInformation(EventId, "User {username} changed username to {newUsername} for user {oldUsername}.", UserName, NewUsername, SubWindowSingleUserSelection);
 		SubWindowSingleUserSelection = null;
 		ResetNewUsernameAndPassword();
 		Refresh();

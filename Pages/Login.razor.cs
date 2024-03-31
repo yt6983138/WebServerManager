@@ -8,6 +8,8 @@ namespace WebServerManager.Pages;
 
 partial class Login
 {
+	private readonly static EventId EventId = new(114511, "UserLogIO");
+
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	[Inject]
 	private IHttpContextAccessor HttpContextAccessor { get; set; }
@@ -45,7 +47,7 @@ partial class Login
 		await JS!.InvokeVoidAsync("WriteCookie", "username", Username, ExpiresInMin * 60);
 		await JS!.InvokeVoidAsync("WriteCookie", "token", token, ExpiresInMin * 60);
 
-		Logger.LogInformation("The user {username} logged in, token expires in {minute} minutes.", Username, ExpiresInMin);
+		Logger.LogInformation(EventId, "The user {username} logged in, token expires in {minute} minutes.", Username, ExpiresInMin);
 
 		NavigationManager.NavigateTo("/", true);
 
@@ -58,7 +60,7 @@ partial class Login
 	private async void RemoveTokenTimeout(string key, int timeoutMs)
 	{
 		await Task.Delay(timeoutMs);
-		Logger.LogInformation("Revoked user token for {key}.", key);
+		Logger.LogInformation(EventId, "Revoked user token for {key}.", key);
 		Manager.ActiveTokens.Remove(key);
 	}
 }

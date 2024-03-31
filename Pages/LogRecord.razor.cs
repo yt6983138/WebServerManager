@@ -46,10 +46,11 @@ partial class LogRecord
 		LoadCount++;
 		StateHasChanged();
 	}
-	private readonly static byte[] NextLine = new byte[1] { 0x0A };
+	// private readonly static byte[] NextLine = new byte[1] { 0x0A };
 	public async void ExportAll()
 	{
 		LastMessage = "Preparing file...";
+		StateHasChanged();
 
 		string TempLocation = "/tmp";
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) TempLocation = "%temp%";
@@ -59,12 +60,13 @@ partial class LogRecord
 		foreach (var data in yt6983138.Common.Logger.AllLogs)
 		{
 			output.Write(Encoding.UTF8.GetBytes(data));
-			output.Write(NextLine);
+			// output.Write(NextLine);
 		}
 
 		string pathToGo = $"/api/DownloadFile?address={System.Net.WebUtility.UrlEncode(outLocation)}";
 		await JS.InvokeVoidAsync("openWindow", pathToGo);
 		LastMessage = "File downloaded.";
+		StateHasChanged();
 	}
 	#endregion
 }

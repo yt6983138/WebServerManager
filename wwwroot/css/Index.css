@@ -1,0 +1,25 @@
+﻿#Main {
+    position: absolute;
+    justify-content: center;
+    align-content: center;
+    width: 100%;
+}
+.Tools {
+    display: block;
+    max-width: 95%;
+    width: 512px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.Tools > button {
+    margin: 8px;
+}
+span {
+    font-size: 18px;
+}
+h1, h2 {
+    margin: 32px;
+}
+main {
+    text-align: center;
+}
