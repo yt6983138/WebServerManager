@@ -14,7 +14,7 @@ Their activity will be logged.
 Allows you to browse remote machine files, and you can even upload/download files!
 ## Log Record
 [Requires super account] <br/>
-WIP
+Allows you to read logs about this program (which has all user operations!)
 ## Terminal Access
 [Requires super account] <br/>
 WIP

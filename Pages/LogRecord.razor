@@ -1,0 +1,39 @@
+﻿@page "/LogRecord"
+
+<link href="/css/LogRecord.css" rel="stylesheet" />
+<script>
+	function openWindow(path) {
+		window.open(path, "_blank");
+	}
+</script>
+
+<div id="Main">
+	<div id="LogActions">
+		<button id="ExportButton" >Export</button>
+	</div>
+	<div id="Infos">
+		@if (!string.IsNullOrEmpty(LastMessage))
+		{
+			<label id="Message">@LastMessage</label>
+		}
+	</div>
+	<table id="Logs">
+		<tr>
+			<th>Logs</th>
+		</tr>
+		@for (int i = 0; i < LoadCount * OneLoadLineCount && i < yt6983138.Common.Logger.AllLogs.Count; i++)
+		{
+			<tr>
+				<td>@yt6983138.Common.Logger.AllLogs[i]</td>
+			</tr>
+		}
+		@if (LoadCount * OneLoadLineCount <= yt6983138.Common.Logger.AllLogs.Count)
+		{
+			<tr id="LoadMoreRow">
+				<td>
+					<button id="LoadMoreButton" @onclick=LoadMore>Load more...</button>
+				</td>
+			</tr>
+		}
+	</table>
+</div>

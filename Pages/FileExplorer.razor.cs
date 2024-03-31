@@ -79,8 +79,8 @@ public partial class FileExplorer
 	public FileSystemInfo? DetailsSelected { get; set; }
 	private bool Summed { get; set; } = false;
 	private long Size = -1;
-	private volatile int Files = -1;
-	private volatile int Folders = -1;
+	private int Files = -1;
+	private int Folders = -1;
 	#endregion
 
 	#region Injection

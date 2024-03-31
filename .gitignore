@@ -11,7 +11,9 @@
 *.sln.docstates
 [Uu]sers.json
 [Aa]ppsettings.json
+[Pp]ackage-lock.json
 [Cc]onfig.json
+[Tt]est/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

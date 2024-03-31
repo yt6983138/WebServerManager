@@ -1,0 +1,52 @@
+﻿@keyframes WindowBlur {
+    0% {
+        backdrop-filter: blur(0.0px);
+        filter: opacity(0);
+    }
+
+    25% {
+        backdrop-filter: blur(0.5px);
+        filter: opacity(0.25);
+    }
+
+    75% {
+        backdrop-filter: blur(2.25px);
+        filter: opacity(0.8);
+    }
+
+    100% {
+        backdrop-filter: blur(3px);
+        filter: opacity(1);
+    }
+}
+
+#LogActions {
+    padding: 16px;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+#Infos {
+    margin: 8px 0px 8px 0px;
+    background-color: rgba(0, 0, 0, 0.25);
+    display: block;
+}
+#Infos > label {
+    background: none;
+    margin: 4px;
+    width: 100%;
+    display: block;
+}
+#Logs {
+    position: absolute;
+    margin: 16px;
+    max-width: 100%;
+}
+#LoadMoreRow > td {
+    display: flex;
+    justify-items: center;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+#LoadMoreButton {
+    padding: 0px 8px 0px 8px;
+}
