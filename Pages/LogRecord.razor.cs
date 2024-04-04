@@ -29,28 +29,28 @@ partial class LogRecord
 
 	protected override void OnInitialized()
 	{
-		if (Utils.CheckLogin(HttpContextAccessor))
+		if (Utils.CheckLogin(this.HttpContextAccessor))
 		{
 			base.OnInitialized();
-			string username = HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
+			string username = this.HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
 			if (!Manager.SuperUsers.Contains(username))
-				NavigationManager.NavigateTo("/Forbidden", true);
+				this.NavigationManager.NavigateTo("/Forbidden", true);
 			return;
 		}
-		NavigationManager.NavigateTo("/Login");
+		this.NavigationManager.NavigateTo("/Login");
 	}
 
 	#region Log operations
 	public void LoadMore()
 	{
-		LoadCount++;
-		StateHasChanged();
+		this.LoadCount++;
+		this.StateHasChanged();
 	}
 	// private readonly static byte[] NextLine = new byte[1] { 0x0A };
 	public async void ExportAll()
 	{
-		LastMessage = "Preparing file...";
-		StateHasChanged();
+		this.LastMessage = "Preparing file...";
+		this.StateHasChanged();
 
 		string TempLocation = "/tmp";
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) TempLocation = "%temp%";
@@ -64,9 +64,9 @@ partial class LogRecord
 		}
 
 		string pathToGo = $"/api/DownloadFile?address={System.Net.WebUtility.UrlEncode(outLocation)}";
-		await JS.InvokeVoidAsync("openWindow", pathToGo);
-		LastMessage = "File downloaded.";
-		StateHasChanged();
+		await this.JS.InvokeVoidAsync("openWindow", pathToGo);
+		this.LastMessage = "File downloaded.";
+		this.StateHasChanged();
 	}
 	#endregion
 }

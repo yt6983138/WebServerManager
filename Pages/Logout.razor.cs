@@ -18,14 +18,14 @@ partial class Logout
 
 	protected override void OnInitialized()
 	{
-		if (Utils.CheckLogin(HttpContextAccessor))
+		if (Utils.CheckLogin(this.HttpContextAccessor))
 		{
-			string username = HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
+			string username = this.HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
 			Manager.ActiveTokens.Remove(username);
-			Logger.LogInformation(EventId, "The user {username} logged out!", username);
+			this.Logger.LogInformation(EventId, "The user {username} logged out!", username);
 		}
 
-		NavigationManager.NavigateTo("/Login");
+		this.NavigationManager.NavigateTo("/Login");
 		base.OnInitialized();
 	}
 }

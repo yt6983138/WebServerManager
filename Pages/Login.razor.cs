@@ -28,39 +28,39 @@ partial class Login
 
 	protected override void OnInitialized()
 	{
-		if (Utils.CheckLogin(HttpContextAccessor))
-			NavigationManager.NavigateTo("/");
+		if (Utils.CheckLogin(this.HttpContextAccessor))
+			this.NavigationManager.NavigateTo("/");
 		base.OnInitialized();
 	}
 	public async void LoginEnter()
 	{
-		if (!Manager.Users.TryGetValue(Username, out var user))
+		if (!Manager.Users.TryGetValue(this.Username, out var user))
 			goto Failed;
 
-		if (user != HashChecker.GetHash(Password))
+		if (user != HashChecker.GetHash(this.Password))
 			goto Failed;
 
 		string token = HashChecker.GenerateHash();
-		Manager.ActiveTokens[Username] = token;
-		RemoveTokenTimeout(Username, ExpiresInMin * 60 * 1000);
+		Manager.ActiveTokens[this.Username] = token;
+		this.RemoveTokenTimeout(this.Username, this.ExpiresInMin * 60 * 1000);
 
-		await JS!.InvokeVoidAsync("WriteCookie", "username", Username, ExpiresInMin * 60);
-		await JS!.InvokeVoidAsync("WriteCookie", "token", token, ExpiresInMin * 60);
+		await this.JS!.InvokeVoidAsync("WriteCookie", "username", this.Username, this.ExpiresInMin * 60);
+		await this.JS!.InvokeVoidAsync("WriteCookie", "token", token, this.ExpiresInMin * 60);
 
-		Logger.LogInformation(EventId, "The user {username} logged in, token expires in {minute} minutes.", Username, ExpiresInMin);
+		this.Logger.LogInformation(EventId, "The user {username} logged in, token expires in {minute} minutes.", this.Username, this.ExpiresInMin);
 
-		NavigationManager.NavigateTo("/", true);
+		this.NavigationManager.NavigateTo("/", true);
 
 		return;
 	Failed:
-		Message = "Incorrect Password/Username";
-		StateHasChanged();
+		this.Message = "Incorrect Password/Username";
+		this.StateHasChanged();
 		return;
 	}
 	private async void RemoveTokenTimeout(string key, int timeoutMs)
 	{
 		await Task.Delay(timeoutMs);
-		Logger.LogInformation(EventId, "Revoked user token for {key}.", key);
+		this.Logger.LogInformation(EventId, "Revoked user token for {key}.", key);
 		Manager.ActiveTokens.Remove(key);
 	}
 }

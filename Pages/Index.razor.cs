@@ -26,13 +26,13 @@ public partial class Index
 	};
 	protected override void OnInitialized()
 	{
-		if (Utils.CheckLogin(HttpContextAccessor))
+		if (Utils.CheckLogin(this.HttpContextAccessor))
 		{
 			base.OnInitialized();
-			if (Manager.SuperUsers.Contains(HttpContextAccessor.HttpContext!.Request.Cookies["username"]!))
-				IsSuperUser = true;
+			if (Manager.SuperUsers.Contains(this.HttpContextAccessor.HttpContext!.Request.Cookies["username"]!))
+				this.IsSuperUser = true;
 			return;
 		}
-		NavigationManager.NavigateTo("/Login");
+		this.NavigationManager.NavigateTo("/Login");
 	}
 }

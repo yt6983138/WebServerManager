@@ -13,31 +13,31 @@ public class DownloadFileController : Controller
 	private ILogger<DownloadFileController> Logger { get; set; }
     public DownloadFileController(ILogger<DownloadFileController> logger)
     {
-		Logger = logger;
+		this.Logger = logger;
     }
 
     [Microsoft.AspNetCore.Mvc.HttpGet]
 	public IActionResult Get(string address, string? filename = null)
 	{
-		string? token = Request.Cookies["token"];
-		string? username = Request.Cookies["username"];
+		string? token = this.Request.Cookies["token"];
+		string? username = this.Request.Cookies["username"];
 		if (username.IsNullOrEmpty() || !Manager.ActiveTokens.TryGetValue(username!, out var _val) || _val != token)
 		{
-			return Unauthorized();
+			return this.Unauthorized();
 		}
 
 		string parsed = System.Net.WebUtility.UrlDecode(address);
 
 		if (!System.IO.File.Exists(parsed))
 		{
-			Logger.LogInformation(EventId, "The user {user} requested file '{file}' which does not exist!", username, parsed);
-			return NotFound();
+			this.Logger.LogInformation(EventId, "The user {user} requested file '{file}' which does not exist!", username, parsed);
+			return this.NotFound();
 		}
 
 		try
 		{
 			var stream = System.IO.File.Open(parsed, FileMode.Open);
-			Logger.LogInformation(EventId, "The user {user} requested file '{file}' which is a successfully request.", username, parsed);
+			this.Logger.LogInformation(EventId, "The user {user} requested file '{file}' which is a successfully request.", username, parsed);
 			return new FileStreamResult(stream, "application/octet-stream") 
 			{ 
 				FileDownloadName = filename ?? Path.GetFileName(parsed) 
@@ -45,8 +45,8 @@ public class DownloadFileController : Controller
 		}
 		catch (Exception ex)
 		{
-			Logger.LogInformation(EventId, ex, "The user {user} requested file '{file}' which failed with {exception}.", username, parsed, ex.GetType().Name);
-			return Forbid();
+			this.Logger.LogInformation(EventId, ex, "The user {user} requested file '{file}' which failed with {exception}.", username, parsed, ex.GetType().Name);
+			return this.Forbid();
 		}
 	}
 }

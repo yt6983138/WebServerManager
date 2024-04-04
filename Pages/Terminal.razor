@@ -1,0 +1,25 @@
+﻿@page "/Terminal"
+
+<link href="_content/XtermBlazor/XtermBlazor.min.css" rel="stylesheet" />
+<script src="_content/XtermBlazor/XtermBlazor.min.js"></script>
+
+<div id="Main">
+	<div id="Terminal">
+		<Xterm @ref="XTerminal" Options="Options" OnKey="OnKey"></Xterm>
+	</div>
+	<div id="TerminalSelector">
+		<select @onchange=@((e) => SwitchTerminal(int.Parse((string)e.Value!)))>
+			@{
+				int i = 0;
+			}
+			@if (UserTerminalCollections is not null)
+			{
+				@foreach (var collection in UserTerminalCollections)
+				{
+					<option value="@i" selected="@(collection == CurrentCollection)" disabled="@collection.Occupied">@collection.Name</option>
+					i++;
+				}
+			}
+		</select>
+	</div>
+</div>

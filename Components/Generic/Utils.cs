@@ -25,6 +25,26 @@ public static class Utils
 		list.Add(item);
 		return true;
 	}
+	public static bool TryGetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, out TValue value, Func<TValue> valueGetter)
+	{
+		if (dict.TryGetValue(key, out value))
+		{
+			return true;
+		}
+		value = valueGetter();
+		dict[key] = value;
+		return false;
+	}
+	public static async Task<(bool, TValue)> TryGetOrCreateAsync<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<Task<TValue>> valueGetter)
+	{
+		if (dict.TryGetValue(key, out var value))
+		{
+			return (true, value);
+		}
+		value = await valueGetter();
+		dict[key] = value;
+		return (false, value);
+	}
 
 	private static string[] Units { get; } = new string[6] { "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
 	public static string FileSizeFormatter(long sizeInByte, bool forceFormatAll = false)

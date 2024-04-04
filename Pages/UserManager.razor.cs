@@ -48,121 +48,121 @@ partial class UserManager
 
 	protected override void OnInitialized()
 	{
-		if (Utils.CheckLogin(HttpContextAccessor))
+		if (Utils.CheckLogin(this.HttpContextAccessor))
 		{
 			base.OnInitialized();
-			UserName = HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
-			if (!Manager.SuperUsers.Contains(UserName))
-				NavigationManager.NavigateTo("/Forbidden", true);
+			this.UserName = this.HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
+			if (!Manager.SuperUsers.Contains(this.UserName))
+				this.NavigationManager.NavigateTo("/Forbidden", true);
 			return;
 		}
-		NavigationManager.NavigateTo("/Login");
+		this.NavigationManager.NavigateTo("/Login");
 	}
 
 	#region Utils/Shared functions
 	public void CloseSubWindow()
-		=> CurrentSubWindow = WindowType.None;
+		=> this.CurrentSubWindow = WindowType.None;
 	private void Refresh()
 	{
-		Selected = new();
-		ValueSetter.Invoke(null, false);
-		StateHasChanged();
+		this.Selected = new();
+		this.ValueSetter.Invoke(null, false);
+		this.StateHasChanged();
 	}
 	private void RemoveOrAdd(bool condition, string selected)
 	{
 		if (condition)
-			Selected.Add(selected);
+			this.Selected.Add(selected);
 		else
-			Selected.Remove(selected);
+			this.Selected.Remove(selected);
 
-		StateHasChanged();
+		this.StateHasChanged();
 	}
 	private void ResetNewUsernameAndPassword()
 	{
-		NewUsername = "";
-		NewPassword = "";
+		this.NewUsername = "";
+		this.NewPassword = "";
 	}
 	#endregion
 
 	#region User operations
 	public void AddUserSubmit()
 	{
-		CloseSubWindow();
-		if (Manager.Users.ContainsKey(NewUsername))
+		this.CloseSubWindow();
+		if (Manager.Users.ContainsKey(this.NewUsername))
 		{
-			Message = $"The user \"{NewUsername}\" already exists!";
+			this.Message = $"The user \"{this.NewUsername}\" already exists!";
 			return;
 		}
-		string passwordHash = HashChecker.GetHash(NewPassword);
-		Manager.Users.Add(NewUsername, passwordHash);
+		string passwordHash = HashChecker.GetHash(this.NewPassword);
+		Manager.Users.Add(this.NewUsername, passwordHash);
 		Manager.WriteUsers();
-		Message = OperationDone;
-		Logger.LogInformation(EventId, "The user {username} added new user {anotherUser} with password {password}!", UserName, NewUsername, NewPassword);
-		ResetNewUsernameAndPassword();
-		Refresh();
+		this.Message = OperationDone;
+		this.Logger.LogInformation(EventId, "The user {username} added new user {anotherUser} with password {password}!", this.UserName, this.NewUsername, this.NewPassword);
+		this.ResetNewUsernameAndPassword();
+		this.Refresh();
 	}
 	public void RemoveUsers()
 	{
-		foreach (string username in Selected)
+		foreach (string username in this.Selected)
 		{
 			Manager.Users.Remove(username);
 			Manager.SuperUsers.Remove(username);
 		}
 		Manager.WriteUsers();
-		Message = OperationDone;
-		Logger.LogInformation(EventId, "User {username} removed user(s): [{users}].", UserName, string.Join(", ", Selected));
-		Refresh();
+		this.Message = OperationDone;
+		this.Logger.LogInformation(EventId, "User {username} removed user(s): [{users}].", this.UserName, string.Join(", ", this.Selected));
+		this.Refresh();
 	}
 	public void MarkUsersAsSuperUser()
 	{
-		foreach (string username in Selected)
+		foreach (string username in this.Selected)
 		{
 			Manager.SuperUsers.TryAdd(username);
 		}
 		Manager.WriteUsers();
-		Message = OperationDone;
-		Logger.LogInformation(EventId, "User {username} marked user(s) as super user: [{users}].", UserName, string.Join(", ", Selected));
-		Refresh();
+		this.Message = OperationDone;
+		this.Logger.LogInformation(EventId, "User {username} marked user(s) as super user: [{users}].", this.UserName, string.Join(", ", this.Selected));
+		this.Refresh();
 	}
 	public void MarkUsersAsNormalUser()
 	{
-		foreach (string username in Selected)
+		foreach (string username in this.Selected)
 		{
 			Manager.SuperUsers.Remove(username);
 		}
 		Manager.WriteUsers();
-		Message = OperationDone;
-		Logger.LogInformation(EventId, "User {username} marked user(s) as normal user: [{users}].", UserName, string.Join(", ", Selected));
-		Refresh();
+		this.Message = OperationDone;
+		this.Logger.LogInformation(EventId, "User {username} marked user(s) as normal user: [{users}].", this.UserName, string.Join(", ", this.Selected));
+		this.Refresh();
 	}
 	public void ChangePasswordForUser()
 	{
-		CloseSubWindow();
-		Manager.Users[SubWindowSingleUserSelection!] = HashChecker.GetHash(NewPassword);
-		SubWindowSingleUserSelection = null;
+		this.CloseSubWindow();
+		Manager.Users[this.SubWindowSingleUserSelection!] = HashChecker.GetHash(this.NewPassword);
+		this.SubWindowSingleUserSelection = null;
 		Manager.WriteUsers();
-		Message = OperationDone;
-		Logger.LogInformation(EventId, "User {username} changed password to {password} for user {newUser}.", UserName, NewPassword, NewUsername);
-		ResetNewUsernameAndPassword();
-		Refresh();
+		this.Message = OperationDone;
+		this.Logger.LogInformation(EventId, "User {username} changed password to {password} for user {newUser}.", this.UserName, this.NewPassword, this.NewUsername);
+		this.ResetNewUsernameAndPassword();
+		this.Refresh();
 	}
 	public void ChangeUsernameForUser()
 	{
-		CloseSubWindow();
-		if (Manager.Users.ContainsKey(NewUsername))
+		this.CloseSubWindow();
+		if (Manager.Users.ContainsKey(this.NewUsername))
 		{
-			Message = "The username you tried to change already exists!";
+			this.Message = "The username you tried to change already exists!";
 			return;
 		}
-		string password = Manager.Users[SubWindowSingleUserSelection!];
-		Manager.Users.Remove(SubWindowSingleUserSelection!);
-		Manager.Users[NewUsername] = password;
+		string password = Manager.Users[this.SubWindowSingleUserSelection!];
+		Manager.Users.Remove(this.SubWindowSingleUserSelection!);
+		Manager.Users[this.NewUsername] = password;
 		Manager.WriteUsers();
-		Message = OperationDone;
-		Logger.LogInformation(EventId, "User {username} changed username to {newUsername} for user {oldUsername}.", UserName, NewUsername, SubWindowSingleUserSelection);
-		SubWindowSingleUserSelection = null;
-		ResetNewUsernameAndPassword();
-		Refresh();
+		this.Message = OperationDone;
+		this.Logger.LogInformation(EventId, "User {username} changed username to {newUsername} for user {oldUsername}.", this.UserName, this.NewUsername, this.SubWindowSingleUserSelection);
+		this.SubWindowSingleUserSelection = null;
+		this.ResetNewUsernameAndPassword();
+		this.Refresh();
 	}
 	#endregion
 }

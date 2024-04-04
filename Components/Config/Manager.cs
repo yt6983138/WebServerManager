@@ -1,4 +1,7 @@
 ﻿using Newtonsoft.Json;
+using Pty.Net;
+using WebServerManager.Components;
+using XtermBlazor;
 
 namespace WebServerManager;
 
@@ -13,6 +16,7 @@ public static class Manager
 	// default: admin admin
 
 	public static Dictionary<string, string> ActiveTokens { get; set; } = new();
+	public static Dictionary<string, List<TerminalCollection>> Connections { get; set; } = new(); 
 	static Manager()
 	{
 		try

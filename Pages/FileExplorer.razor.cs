@@ -56,7 +56,7 @@ public partial class FileExplorer
 		set
 		{
 			this._currentDirectory = value;
-			OnCurrentItemChange();
+			this.OnCurrentItemChange();
 		}
 	}
 	public DirectoryInfo? Parent
@@ -104,32 +104,32 @@ public partial class FileExplorer
 
 	#region Utils/Shared functions
 	public void CloseSubWindow()
-		=> SubWindow = WindowType.None;
+		=> this.SubWindow = WindowType.None;
 	public async void OnCurrentItemChange()
 	{
 		try
 		{
-			ChildFiles = CurrentDirectory.GetFiles().OrderBy(FileInfoComparer).ToList();
-			ChildDirectories = CurrentDirectory.GetDirectories().OrderBy(DirectoryInfoComparer).ToList();
+			this.ChildFiles = this.CurrentDirectory.GetFiles().OrderBy(this.FileInfoComparer).ToList();
+			this.ChildDirectories = this.CurrentDirectory.GetDirectories().OrderBy(this.DirectoryInfoComparer).ToList();
 			// LastMessage = "";
 		}
 		catch (Exception ex)
 		{
-			ChildFiles = new();
-			ChildDirectories = new();
-			LastMessage = ex.Message;
+			this.ChildFiles = new();
+			this.ChildDirectories = new();
+			this.LastMessage = ex.Message;
 		}
-		Selected = new();
-		await InvokeAsync(() => ValueSetter.Invoke(null, false));
+		this.Selected = new();
+		await this.InvokeAsync(() => this.ValueSetter.Invoke(null, false));
 	}
 	public void RemoveOrAdd(bool condition, FileSystemInfo info)
 	{
 		if (condition)
-			Selected.Add(info);
+			this.Selected.Add(info);
 		else
-			Selected.Remove(info);
+			this.Selected.Remove(info);
 
-		StateHasChanged();
+		this.StateHasChanged();
 	}
 	public void SumFolderSize(DirectoryInfo directory, ref long size, ref int files, ref int folders)
 	{
@@ -151,17 +151,17 @@ public partial class FileExplorer
 				{
 					if (dir.LinkTarget != null)
 						continue;
-					SumFolderSize(dir, ref size, ref files, ref folders);
+					this.SumFolderSize(dir, ref size, ref files, ref folders);
 				}
 				catch { }
 			}
 		}
 		catch { }
-		StateHasChanged();
+		this.StateHasChanged();
 	}
 	public string GetIconRegardingToTheFileExtensionOrDefault(FileInfo fileInfo)
 	{
-		foreach ((string name, string extension) in AvailableIconNames)
+		foreach ((string name, string extension) in this.AvailableIconNames)
 		{
 			if (fileInfo.Extension[1..].Equals(name, StringComparison.CurrentCultureIgnoreCase))
 				return IconsRelativePath + name + extension;
@@ -173,71 +173,71 @@ public partial class FileExplorer
 	#region File operations
 	public void Rename()
 	{
-		SubWindow = WindowType.InputField;
-		InputFieldSubmit = () =>
+		this.SubWindow = WindowType.InputField;
+		this.InputFieldSubmit = () =>
 		{
-			InputFieldSubmit = () => { };
-			SubWindow = WindowType.None;
-			if (Selected.Count == 0)
+			this.InputFieldSubmit = () => { };
+			this.SubWindow = WindowType.None;
+			if (this.Selected.Count == 0)
 				goto Final;
 			try
 			{
-				var item = Selected[0];
+				var item = this.Selected[0];
 				if (item is FileInfo info)
 				{
-					info.MoveTo(Path.Combine(info.Directory!.FullName, InputFieldBind));
+					info.MoveTo(Path.Combine(info.Directory!.FullName, this.InputFieldBind));
 				}
 				else if (item is DirectoryInfo info2)
 				{
-					info2.MoveTo(Path.Combine(info2.Parent?.FullName ?? @"/", InputFieldBind));
+					info2.MoveTo(Path.Combine(info2.Parent?.FullName ?? @"/", this.InputFieldBind));
 				}
-				Logger.LogInformation(
+				this.Logger.LogInformation(
 					EventId, 
-					"The user {user} renamed item {oldName} at {path} to {newName}", 
-					Username, 
+					"The user {user} renamed item {oldName} at {path} to {newName}",
+					this.Username, 
 					item.Name, 
-					Path.GetDirectoryName(item.FullName), 
-					InputFieldBind
+					Path.GetDirectoryName(item.FullName),
+					this.InputFieldBind
 				);
-				LastMessage = "";
+				this.LastMessage = "";
 			}
 			catch (Exception ex)
 			{
-				LastMessage = ex.Message;
+				this.LastMessage = ex.Message;
 			}
 		Final:
-			InputFieldBind = "";
-			CurrentDirectory = CurrentDirectory; // reload
+			this.InputFieldBind = "";
+			this.CurrentDirectory = this.CurrentDirectory; // reload
 		};
 	}
 	public void MoveTo()
 	{
-		CopyOrMove = OperationType.Move;
-		foreach (var item in Selected)
+		this.CopyOrMove = OperationType.Move;
+		foreach (var item in this.Selected)
 		{
-			CopyOrMoveSource.Add(item);
+			this.CopyOrMoveSource.Add(item);
 		}
 
-		StateHasChanged();
+		this.StateHasChanged();
 	}
 	public void CopyTo()
 	{
-		CopyOrMove = OperationType.Copy;
-		foreach (var item in Selected)
+		this.CopyOrMove = OperationType.Copy;
+		foreach (var item in this.Selected)
 		{
-			CopyOrMoveSource.Add(item);
+			this.CopyOrMoveSource.Add(item);
 		}
 
-		StateHasChanged();
+		this.StateHasChanged();
 	}
 	public void PutHere()
 	{
-		string currentPath = CurrentDirectory.FullName;
+		string currentPath = this.CurrentDirectory.FullName;
 		try
 		{
-			if (CopyOrMove == OperationType.Move)
+			if (this.CopyOrMove == OperationType.Move)
 			{
-				foreach (var thing in CopyOrMoveSource)
+				foreach (var thing in this.CopyOrMoveSource)
 				{
 					string path = thing.FullName;
 
@@ -245,167 +245,167 @@ public partial class FileExplorer
 						dInfo.MoveTo(Path.Combine(currentPath, dInfo.Name));
 					else if (thing is FileInfo fInfo)
 						fInfo.MoveTo(Path.Combine(currentPath, fInfo.Name));
-					Logger.LogInformation(
+					this.Logger.LogInformation(
 						EventId,
 						"The user {user} moved item {item} from {path1} to {path2}.",
-						Username,
+						this.Username,
 						thing.Name,
 						Path.GetDirectoryName(path),
-						CurrentDirectory.FullName
+						this.CurrentDirectory.FullName
 					);
 				}
 			}
-			else if (CopyOrMove == OperationType.Copy)
+			else if (this.CopyOrMove == OperationType.Copy)
 			{
-				foreach (var thing in CopyOrMoveSource)
+				foreach (var thing in this.CopyOrMoveSource)
 				{
 					string path = thing.FullName;
 
 					if (thing is DirectoryInfo dInfo)
-						dInfo.CopyAll(CurrentDirectory);
+						dInfo.CopyAll(this.CurrentDirectory);
 					else if (thing is FileInfo fInfo)
 						fInfo.CopyTo(Path.Combine(currentPath, fInfo.Name));
-					Logger.LogInformation(
+					this.Logger.LogInformation(
 						EventId,
 						"The user {user} copied item {item} from {path1} to {path2}.",
-						Username,
+						this.Username,
 						thing.Name,
 						Path.GetDirectoryName(path),
-						CurrentDirectory.FullName
+						this.CurrentDirectory.FullName
 					);
 				}
 			}
-			CurrentDirectory = CurrentDirectory;
-			LastMessage = "";
+			this.CurrentDirectory = this.CurrentDirectory;
+			this.LastMessage = "";
 		}
 		catch (Exception ex)
 		{
-			LastMessage = ex.Message;
+			this.LastMessage = ex.Message;
 		}
-		CopyOrMoveSource = new();
-		CopyOrMove = OperationType.None;
+		this.CopyOrMoveSource = new();
+		this.CopyOrMove = OperationType.None;
 	}
 	public void DeleteSelected()
 	{
-		foreach (var thing in Selected)
+		foreach (var thing in this.Selected)
 		{
 			try
 			{
 				if (thing is DirectoryInfo info)
 					info.Delete(true);
 				else thing.Delete();
-				LastMessage = "";
-				Logger.LogInformation(
+				this.LastMessage = "";
+				this.Logger.LogInformation(
 					EventId,
 					"The user {user} deleted item {item} at path {path}.",
-					Username,
+					this.Username,
 					thing.Name,
-					CurrentDirectory.FullName
+					this.CurrentDirectory.FullName
 				);
 			}
 			catch (Exception ex)
 			{
-				LastMessage = ex.Message;
+				this.LastMessage = ex.Message;
 			}
 		}
-		CurrentDirectory = CurrentDirectory;
+		this.CurrentDirectory = this.CurrentDirectory;
 	}
 	public void GoTo()
 	{
-		SubWindow = WindowType.InputField;
-		InputFieldSubmit = () =>
+		this.SubWindow = WindowType.InputField;
+		this.InputFieldSubmit = () =>
 		{
-			SubWindow = WindowType.None;
-			if (InputFieldBind.IsNullOrEmpty())
+			this.SubWindow = WindowType.None;
+			if (this.InputFieldBind.IsNullOrEmpty())
 				goto Final;
-			var target = new DirectoryInfo(InputFieldBind);
+			var target = new DirectoryInfo(this.InputFieldBind);
 			if (target.Exists)
 			{
-				CurrentDirectory = target;
-				LastMessage = "";
+				this.CurrentDirectory = target;
+				this.LastMessage = "";
 			}
 			else
-				LastMessage = "Target path does not exist.";
+				this.LastMessage = "Target path does not exist.";
 
 			Final:
-			InputFieldBind = "";
-			InputFieldSubmit = () => { };
+			this.InputFieldBind = "";
+			this.InputFieldSubmit = () => { };
 		};
 	}
 	public void NewFolder()
 	{
-		SubWindow = WindowType.InputField;
-		InputFieldSubmit = () =>
+		this.SubWindow = WindowType.InputField;
+		this.InputFieldSubmit = () =>
 		{
-			SubWindow = WindowType.None;
+			this.SubWindow = WindowType.None;
 			try
 			{
-				CurrentDirectory.CreateSubdirectory(InputFieldBind);
-				LastMessage = "";
-				Logger.LogInformation(
+				this.CurrentDirectory.CreateSubdirectory(this.InputFieldBind);
+				this.LastMessage = "";
+				this.Logger.LogInformation(
 					EventId,
 					"The user {user} made new folder {item} at path {path}.",
-					Username,
-					InputFieldBind,
-					CurrentDirectory.FullName
+					this.Username,
+					this.InputFieldBind,
+					this.CurrentDirectory.FullName
 				);
 			}
 			catch (Exception ex)
 			{
-				LastMessage = ex.Message;
+				this.LastMessage = ex.Message;
 			}
-			CurrentDirectory = CurrentDirectory; // reload
-			InputFieldBind = "";
-			InputFieldSubmit = () => { };
+			this.CurrentDirectory = this.CurrentDirectory; // reload
+			this.InputFieldBind = "";
+			this.InputFieldSubmit = () => { };
 		};
 	}
 	public void NewFile()
 	{
-		SubWindow = WindowType.InputField;
-		InputFieldSubmit = () =>
+		this.SubWindow = WindowType.InputField;
+		this.InputFieldSubmit = () =>
 		{
-			SubWindow = WindowType.None;
+			this.SubWindow = WindowType.None;
 			try
 			{
-				File.Create(Path.Combine(CurrentDirectory.FullName, InputFieldBind)).Close();
-				LastMessage = "";
-				Logger.LogInformation(
+				File.Create(Path.Combine(this.CurrentDirectory.FullName, this.InputFieldBind)).Close();
+				this.LastMessage = "";
+				this.Logger.LogInformation(
 					EventId,
 					"The user {user} made new file {item} at path {path}.",
-					Username,
-					InputFieldBind,
-					CurrentDirectory.FullName
+					this.Username,
+					this.InputFieldBind,
+					this.CurrentDirectory.FullName
 				);
 			}
 			catch (Exception ex)
 			{
-				LastMessage = ex.Message;
+				this.LastMessage = ex.Message;
 			}
-			CurrentDirectory = CurrentDirectory; // reload
-			InputFieldBind = "";
-			InputFieldSubmit = () => { };
+			this.CurrentDirectory = this.CurrentDirectory; // reload
+			this.InputFieldBind = "";
+			this.InputFieldSubmit = () => { };
 		};
 	}
 	public void ViewDetails(FileSystemInfo file)
 	{
-		SubWindow = WindowType.Details;
-		DetailsSelected = file;
-		Summed = false;
-		Size = -1;
-		Files = -1;
-		Folders = -1;
-		if (DetailsSelected is DirectoryInfo dInfo)
+		this.SubWindow = WindowType.Details;
+		this.DetailsSelected = file;
+		this.Summed = false;
+		this.Size = -1;
+		this.Files = -1;
+		this.Folders = -1;
+		if (this.DetailsSelected is DirectoryInfo dInfo)
 		{
-			Task.Run(() => InvokeAsync(() =>
+			Task.Run(() => this.InvokeAsync(() =>
 			{
-				SumFolderSize(dInfo, ref Size, ref Files, ref Folders);
-				Summed = true;
+				this.SumFolderSize(dInfo, ref this.Size, ref this.Files, ref this.Folders);
+				this.Summed = true;
 			}));
 		}
 		else
 		{
-			Size = ((FileInfo)DetailsSelected).Length;
-			Summed = true;
+			this.Size = ((FileInfo)this.DetailsSelected).Length;
+			this.Summed = true;
 		}
 	}
 
@@ -413,8 +413,8 @@ public partial class FileExplorer
 	public async void UploadFile(InputFileChangeEventArgs e)
 	{
 		const long maxSize = 1024L * 1024L * 1024L;
-		LastMessage = "Files have began to upload...";
-		StateHasChanged();
+		this.LastMessage = "Files have began to upload...";
+		this.StateHasChanged();
 		IReadOnlyList<IBrowserFile> files = e.GetMultipleFiles(int.MaxValue);
 		List<Task<bool>> uploadTasks = new();
 		foreach (IBrowserFile file in files)
@@ -426,14 +426,14 @@ public partial class FileExplorer
 					using Stream stream = file.OpenReadStream(maxSize);
 					byte[] buffer = new byte[file.Size];
 					await stream.ReadAsync(buffer);
-					using FileStream fs = new(Path.Combine(CurrentDirectory.FullName, file.Name), FileMode.Create, FileAccess.Write);
+					using FileStream fs = new(Path.Combine(this.CurrentDirectory.FullName, file.Name), FileMode.Create, FileAccess.Write);
 					fs.Write(buffer);
-					Logger.LogInformation(
+					this.Logger.LogInformation(
 						EventId,
 						"The user {user} uploaded item {item} to {path}.",
-						Username,
+						this.Username,
 						file.Name,
-						CurrentDirectory.FullName
+						this.CurrentDirectory.FullName
 					);
 					return true;
 				}
@@ -461,14 +461,14 @@ public partial class FileExplorer
 		}
 		if (everFailed)
 			sb.Remove(sb.Length - 2, 2);
-		LastMessage = sb.ToString();
-		CurrentDirectory = CurrentDirectory;
+		this.LastMessage = sb.ToString();
+		this.CurrentDirectory = this.CurrentDirectory;
 	}
 	public async void DownloadFile()
 	{
-		LastMessage = "Your file(s) are preparing...";
+		this.LastMessage = "Your file(s) are preparing...";
 
-		if (Selected.Count != 1 || Selected[0] is not FileInfo)
+		if (this.Selected.Count != 1 || this.Selected[0] is not FileInfo)
 		{
 			// pack all
 			string TempLocation = "/tmp";
@@ -477,7 +477,7 @@ public partial class FileExplorer
 			using FileStream output = File.Create(outLocation);
 			using ZipOutputStream zipOutput = new(output);
 
-			foreach (var info in Selected)
+			foreach (var info in this.Selected)
 			{
 				if (info is FileInfo fInfo)
 				{
@@ -505,13 +505,13 @@ public partial class FileExplorer
 				}
 			}
 			string pathToGo = $"/api/DownloadFile?address={System.Net.WebUtility.UrlEncode(outLocation)}";
-			await JS.InvokeVoidAsync("openWindow", pathToGo);
+			await this.JS.InvokeVoidAsync("openWindow", pathToGo);
 		}
 		else
 		{
-			string pathToGo = $"/api/DownloadFile?address={System.Net.WebUtility.UrlEncode(Selected[0].FullName)}";
-			await JS.InvokeVoidAsync("openWindow", pathToGo);
-			LastMessage = "File downloaded.";
+			string pathToGo = $"/api/DownloadFile?address={System.Net.WebUtility.UrlEncode(this.Selected[0].FullName)}";
+			await this.JS.InvokeVoidAsync("openWindow", pathToGo);
+			this.LastMessage = "File downloaded.";
 		}
 
 		static void CompressFolder(DirectoryInfo directory, ZipOutputStream zipStream, string rootEntryName)
@@ -560,20 +560,20 @@ public partial class FileExplorer
 
 	protected override void OnInitialized()
 	{
-		CurrentDirectory = new(Manager.Config.FileExplorerDefaultStartPath);
-		if (Utils.CheckLogin(HttpContextAccessor))
+		this.CurrentDirectory = new(Manager.Config.UtilsDefaultStartPath);
+		if (Utils.CheckLogin(this.HttpContextAccessor))
 		{
-			IconsPath = new(Path.Combine(WebHostEnvironment.WebRootPath, IconsRelativePath[1..]));
-			
-			AvailableIconNames = IconsPath.GetFiles()
+			this.IconsPath = new(Path.Combine(this.WebHostEnvironment.WebRootPath, IconsRelativePath[1..]));
+
+			this.AvailableIconNames = this.IconsPath.GetFiles()
 				.Select(file => (Path.GetFileNameWithoutExtension(file.Name), file.Extension))
 				.ToList();
 
-			Username = HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
+			this.Username = this.HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
 
 			base.OnInitialized();
 			return;
 		}
-		NavigationManager.NavigateTo("/Login");
+		this.NavigationManager.NavigateTo("/Login");
 	}
 }

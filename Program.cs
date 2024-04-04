@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Configuration;
 using WebServerManager;
-using WebServerManager.Components.Authorize;
+using WebServerManager.Components.Circuits;
 using yt6983138.Common;
 
 internal class Program
@@ -27,6 +28,8 @@ internal class Program
 		builder.Services.AddServerSideBlazor();
 		builder.Services.AddHttpContextAccessor();
 		builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
+		builder.Services.AddScoped<ICircuitAccessor, CircuitAccessor>();
+		builder.Services.AddScoped<CircuitHandler, TrackingCircuitHandler>();
 		//builder.Services.AddAuthentication(IISDefaults.AuthenticationScheme);
 
 
