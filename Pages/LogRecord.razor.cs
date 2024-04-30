@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WebServerManager.Pages;
 
-partial class LogRecord
+public partial class LogRecord
 {
 	#region Definition
 	public const int OneLoadLineCount = 50;
@@ -55,9 +55,9 @@ partial class LogRecord
 		string TempLocation = "/tmp";
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) TempLocation = "%temp%";
 		string outLocation = Path.Combine(Environment.ExpandEnvironmentVariables(TempLocation), Path.GetRandomFileName() + ".log");
-		
+
 		using FileStream output = File.Create(outLocation);
-		foreach (var data in yt6983138.Common.Logger.AllLogs)
+		foreach (string data in yt6983138.Common.Logger.AllLogs)
 		{
 			output.Write(Encoding.UTF8.GetBytes(data));
 			// output.Write(NextLine);

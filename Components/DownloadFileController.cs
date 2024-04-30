@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Web.Http;
-using System.IO;
 
 namespace WebServerManager.Components;
 
@@ -11,17 +10,17 @@ public class DownloadFileController : Controller
 	private readonly static EventId EventId = new(114510, "DownloadFile");
 
 	private ILogger<DownloadFileController> Logger { get; set; }
-    public DownloadFileController(ILogger<DownloadFileController> logger)
-    {
+	public DownloadFileController(ILogger<DownloadFileController> logger)
+	{
 		this.Logger = logger;
-    }
+	}
 
-    [Microsoft.AspNetCore.Mvc.HttpGet]
+	[Microsoft.AspNetCore.Mvc.HttpGet]
 	public IActionResult Get(string address, string? filename = null)
 	{
 		string? token = this.Request.Cookies["token"];
 		string? username = this.Request.Cookies["username"];
-		if (username.IsNullOrEmpty() || !Manager.ActiveTokens.TryGetValue(username!, out var _val) || _val != token)
+		if (username.IsNullOrEmpty() || !Manager.ActiveTokens.TryGetValue(username!, out string? _val) || _val != token)
 		{
 			return this.Unauthorized();
 		}
@@ -36,11 +35,11 @@ public class DownloadFileController : Controller
 
 		try
 		{
-			var stream = System.IO.File.Open(parsed, FileMode.Open);
+			FileStream stream = System.IO.File.Open(parsed, FileMode.Open);
 			this.Logger.LogInformation(EventId, "The user {user} requested file '{file}' which is a successfully request.", username, parsed);
-			return new FileStreamResult(stream, "application/octet-stream") 
-			{ 
-				FileDownloadName = filename ?? Path.GetFileName(parsed) 
+			return new FileStreamResult(stream, "application/octet-stream")
+			{
+				FileDownloadName = filename ?? Path.GetFileName(parsed)
 			};
 		}
 		catch (Exception ex)

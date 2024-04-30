@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.JSInterop;
 using WebServerManager.Components.Authorize;
 
 namespace WebServerManager.Pages;
 
-partial class Login
+public partial class Login
 {
 	private readonly static EventId EventId = new(114511, "UserLogIO");
 
@@ -34,7 +32,7 @@ partial class Login
 	}
 	public async void LoginEnter()
 	{
-		if (!Manager.Users.TryGetValue(this.Username, out var user))
+		if (!Manager.Users.TryGetValue(this.Username, out string? user))
 			goto Failed;
 
 		if (user != HashChecker.GetHash(this.Password))

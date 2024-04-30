@@ -8,7 +8,10 @@
 		<Xterm @ref="XTerminal" Options="Options" OnKey="OnKey"></Xterm>
 	</div>
 	<div id="TerminalSelector">
-		<select @onchange=@((e) => SwitchTerminal(int.Parse((string)e.Value!)))>
+		<select @onchange=@((e) => NavigationManager.NavigateTo(
+			$"{NavigationManager.Uri.Substring(0, NavigationManager.Uri.IndexOf("?") > 0 ? NavigationManager.Uri.IndexOf("?") : NavigationManager.Uri.Length)}" + 
+			$"?ReloadTerm={e.Value}"
+			, true))>
 			@{
 				int i = 0;
 			}
@@ -21,5 +24,7 @@
 				}
 			}
 		</select>
+		<input type="text" id="TerminalName" @bind=CurrentCollectionName />
+		<button id="NewTerminal" @onclick=CreateTerminalButtonClick>New Terminal</button>
 	</div>
 </div>

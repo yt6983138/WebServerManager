@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 
 namespace WebServerManager.Pages;
 
-partial class Logout
+public partial class Logout
 {
 	private readonly static EventId EventId = new(114511, "UserLogIO");
 

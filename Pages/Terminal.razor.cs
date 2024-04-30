@@ -1,15 +1,16 @@
-﻿using XtermBlazor;
+﻿using Microsoft.AspNetCore.Components;
 using Pty.Net;
 using System.Text;
-using System;
-using Microsoft.AspNetCore.Components;
-using WebServerManager.Components.Circuits;
 using WebServerManager.Components;
+using WebServerManager.Components.Circuits;
+using WebServerManager.Components.Generic;
+using XtermBlazor;
 
 namespace WebServerManager.Pages;
 
-partial class Terminal
+public partial class Terminal
 {
+	#region Misc
 	private static readonly TerminalOptions Options = new()
 	{
 		CursorBlink = true,
@@ -18,13 +19,18 @@ partial class Terminal
 		Rows = Manager.Config.TerminalRowCount
 	};
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+	public bool Exited { get; set; } = false;
+	#endregion
+
+	public Event<EventHandler> UserEvents { get; set; }
 	public List<TerminalCollection> UserTerminalCollections { get; set; }
 	public TerminalCollection CurrentCollection { get; set; }
 	public Xterm XTerminal { get; set; }
 	public IPtyConnection Connection { get; set; }
 	public string TerminalName { get; set; }
 	public string UserName { get; set; }
+
+	#region Injection
 	[Inject]
 	private ICircuitAccessor CircuitAccessor { get; set; }
 	[Inject]
@@ -34,9 +40,30 @@ partial class Terminal
 	[Inject]
 	private ILogger<UserManager> Logger { get; set; }
 
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+	[Parameter, SupplyParameterFromQuery]
+	public int ReloadTerm { get; set; } = int.MaxValue;
+	#endregion
 
-	public bool Exited { get; set; } = false;
+	#region Binding
+	public string CurrentCollectionName
+	{
+		get => this.CurrentCollection?.Name ?? "";
+		set
+		{
+			if (this.CurrentCollection is not null)
+				this.CurrentCollection.Name = value;
+		}
+	}
+	#endregion
+
+	public EventHandler DefaultHandler { get; }
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+	public Terminal()
+	{
+		this.DefaultHandler = new EventHandler(async (_, _2) => await this.InvokeAsync(this.StateHasChanged));
+	}
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	protected override void OnInitialized() // this executes twice for some reason
 	{
 		if (Utils.CheckLogin(this.HttpContextAccessor))
@@ -45,6 +72,17 @@ partial class Terminal
 			this.UserName = this.HttpContextAccessor.HttpContext!.Request.Cookies["username"]!;
 			if (!Manager.SuperUsers.Contains(this.UserName))
 				this.NavigationManager.NavigateTo("/Forbidden", true);
+			if (Manager.UserEvents.TryGetValue(this.UserName, out Event<EventHandler>? e))
+			{
+				this.UserEvents = e;
+			}
+			else
+			{
+				this.UserEvents = new();
+				Manager.UserEvents[this.UserName] = this.UserEvents;
+			}
+
+			this.UserEvents += this.DefaultHandler;
 			return;
 		}
 		this.NavigationManager.NavigateTo("/Login");
@@ -55,22 +93,32 @@ partial class Terminal
 		{
 			bool getted = // getted = got old or created
 				Manager.Connections.TryGetOrCreate(
-				UserName,
-				out var collections,
+				this.UserName,
+				out List<TerminalCollection>? collections,
 				() => new()
 			);
-			UserTerminalCollections = collections;
-			TrackingCircuitHandler.CircuitDisconnected += OnExit;
-			Task.Run(async () =>
+			this.UserTerminalCollections = collections;
+			TrackingCircuitHandler.CircuitDisconnected += this.OnExit;
+			_ = Task.Run(async () =>
 			{
 				await this.InvokeAsync(async () =>
 				{
-					await Task.Delay(100); // fuck this, the xterminal element can only be accessed after oninitialized done
-					if (UserTerminalCollections.All(t => t.Occupied))
-						UserTerminalCollections.Add(await CreateCollection($"Terminal{UserTerminalCollections.Count}"));
-					await SwitchTerminal(UserTerminalCollections.Count - 1, false, getted);
-					BackgroundTask();
-					StateHasChanged();
+					await Task.Delay(100); // fuck this, the xterminal element can only be accessed after firstRender done
+					if (this.UserTerminalCollections.All(t => t.Occupied))
+					{
+						this.UserTerminalCollections.Add(await this.CreateCollection($"Terminal - {DateTime.Now}"));
+						await this.SwitchTerminal(this.UserTerminalCollections.Count - 1, false, getted);
+					}
+					else if (this.UserTerminalCollections.ElementAtOrDefault(this.ReloadTerm)?.Occupied == false)
+					{
+						await this.SwitchTerminal(this.ReloadTerm, false);
+					}
+					else
+					{
+						await this.SwitchTerminal(this.UserTerminalCollections.IndexOf(this.UserTerminalCollections.First(x => x.Occupied == false)), false);
+					}
+					this.BackgroundTask();
+					this.StateHasChanged();
 				});
 			});
 		}
@@ -79,64 +127,70 @@ partial class Terminal
 	}
 	public async Task SwitchTerminal(int index, bool removeOldBind = true, bool isOldSession = true)
 	{
-		if (UserTerminalCollections.Count == 0 && index == 0)
-			UserTerminalCollections.Add(await CreateCollection("Terminal0"));
-		var collection = UserTerminalCollections[index];
+		if (this.UserTerminalCollections.Count == 0 && index == 0)
+			this.UserTerminalCollections.Add(await this.CreateCollection("Terminal0"));
+		TerminalCollection collection = this.UserTerminalCollections[index];
 		if (collection.Occupied)
 			throw new InvalidOperationException("The target connection is occupied.");
-		if (CurrentCollection is not null)
+		if (this.CurrentCollection is not null)
 		{
-			CurrentCollection.Occupied = false;
+			this.CurrentCollection.Occupied = false;
 		}
 		if (removeOldBind)
 		{
-			Connection.ProcessExited -= OnPtyExit;
+			this.Connection.ProcessExited -= this.OnPtyExit;
 		}
 		collection.Occupied = true;
-		Connection = collection.Connection;
-		TerminalName = collection.Name;
-		CurrentCollection = collection;
-		Connection.ProcessExited += OnPtyExit;
+		this.Connection = collection.Connection;
+		this.TerminalName = collection.Name;
+		this.CurrentCollection = collection;
+		this.Connection.ProcessExited += this.OnPtyExit;
 		if (isOldSession)
 		{
-			await XTerminal.Clear();
-			await XTerminal.WriteLine("\n[Recovered session, press enter to continue]");
+			await this.XTerminal.Clear();
+			await this.XTerminal.WriteLine("\n[Recovered session, press enter to continue]");
 		}
 		else
 		{
-			Connection.ProcessExited += GeneralOnPtyExit;
+			this.Connection.ProcessExited += this.GeneralOnPtyExit;
 		}
 	}
 	public async Task<TerminalCollection> CreateCollection(string name)
-		=> new(false, await PtyProvider.SpawnAsync(
-			new PtyOptions()
-			{
-				App = Manager.Config.TerminalExecutableName,
-				Cwd = Manager.Config.UtilsDefaultStartPath,
-				Cols = Manager.Config.TerminalColumnCount,
-				Rows = Manager.Config.TerminalRowCount
-			},
+	{
+		_ = Task.Delay(200).ContinueWith((t) => this.UserEvents.Invoke(this, EventArgs.Empty));
+
+		return new(false, await PtyProvider.SpawnAsync(
+				new PtyOptions()
+				{
+					App = Manager.Config.TerminalExecutableName,
+					Cwd = Manager.Config.UtilsDefaultStartPath,
+					Cols = Manager.Config.TerminalColumnCount,
+					Rows = Manager.Config.TerminalRowCount
+				},
 			CancellationToken.None),
 			name
 		);
+	}
 	public void OnExit(object? _, ICircuitAccessor accessor)
 	{
-		if (accessor.CurrentCircuit == CircuitAccessor.CurrentCircuit)
+		if (accessor.CurrentCircuit == this.CircuitAccessor.CurrentCircuit)
 		{
-			Exited = true;
-			TrackingCircuitHandler.CircuitDisconnected -= OnExit;
-			Connection.ProcessExited -= OnPtyExit;
-			CurrentCollection.Occupied = false;
+			this.Exited = true;
+			TrackingCircuitHandler.CircuitDisconnected -= this.OnExit;
+			this.Connection.ProcessExited -= this.OnPtyExit;
+			this.CurrentCollection.Occupied = false;
+			this.UserEvents -= this.DefaultHandler;
 		}
 	}
 	public async void OnPtyExit(object? _, PtyExitedEventArgs e)
 	{
-		await XTerminal.WriteLine($"\n[Process exited with exit code {e.ExitCode}, reload to restart instance.]");
-		UserTerminalCollections.Remove(CurrentCollection);
+		await this.XTerminal.WriteLine($"\n[Process exited with exit code {e.ExitCode}, reload to restart instance.]");
+		this.UserTerminalCollections.Remove(this.CurrentCollection);
+		this.UserEvents.Invoke(this, EventArgs.Empty);
 	}
 	public void GeneralOnPtyExit(object? s, PtyExitedEventArgs e)
 	{
-		var collection = Manager.Connections[UserName];
+		List<TerminalCollection> collection = Manager.Connections[this.UserName];
 		collection.Remove(collection.Find(c => c.Connection == (IPtyConnection)s!)!);
 	}
 	public void OnKey(KeyEventArgs args)
@@ -146,24 +200,30 @@ partial class Terminal
 	public async void BackgroundTask()
 	{
 		byte[] data = new byte[4096];
-		while (!Exited)
+		while (!this.Exited)
 		{
 			Array.Clear(data);
 			try
 			{
 				int count;
-				count = await Connection.ReaderStream.ReadAsync(data);
+				count = await this.Connection.ReaderStream.ReadAsync(data);
 				if (count == 0)
 				{
 					await Task.Delay(64);
 				}
 				else
 				{
-					await XTerminal.Write(data);
+					await this.XTerminal.Write(data);
 				}
+				await Task.Delay(16);
 			}
 			catch { }
-			await Task.Delay(16);
 		}
+	}
+	public async void CreateTerminalButtonClick()
+	{
+		await this.XTerminal.Clear();
+		this.UserTerminalCollections.Add(await this.CreateCollection($"Terminal - {DateTime.Now}"));
+		await this.SwitchTerminal(this.UserTerminalCollections.Count - 1, false, false);
 	}
 }

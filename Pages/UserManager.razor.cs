@@ -4,7 +4,7 @@ using WebServerManager.Components.Authorize;
 
 namespace WebServerManager.Pages;
 
-partial class UserManager
+public partial class UserManager
 {
 	#region Defintion
 	public enum WindowType

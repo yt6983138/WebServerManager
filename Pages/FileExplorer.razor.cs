@@ -2,12 +2,7 @@ using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.JSInterop;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using WebServerManager.Components;
@@ -136,7 +131,7 @@ public partial class FileExplorer
 		folders++;
 		try
 		{
-			foreach (var file in directory.GetFiles())
+			foreach (FileInfo file in directory.GetFiles())
 			{
 				try
 				{
@@ -145,7 +140,7 @@ public partial class FileExplorer
 				}
 				catch { }
 			}
-			foreach (var dir in directory.GetDirectories())
+			foreach (DirectoryInfo dir in directory.GetDirectories())
 			{
 				try
 				{
@@ -182,7 +177,7 @@ public partial class FileExplorer
 				goto Final;
 			try
 			{
-				var item = this.Selected[0];
+				FileSystemInfo item = this.Selected[0];
 				if (item is FileInfo info)
 				{
 					info.MoveTo(Path.Combine(info.Directory!.FullName, this.InputFieldBind));
@@ -192,10 +187,10 @@ public partial class FileExplorer
 					info2.MoveTo(Path.Combine(info2.Parent?.FullName ?? @"/", this.InputFieldBind));
 				}
 				this.Logger.LogInformation(
-					EventId, 
+					EventId,
 					"The user {user} renamed item {oldName} at {path} to {newName}",
-					this.Username, 
-					item.Name, 
+					this.Username,
+					item.Name,
 					Path.GetDirectoryName(item.FullName),
 					this.InputFieldBind
 				);
@@ -213,7 +208,7 @@ public partial class FileExplorer
 	public void MoveTo()
 	{
 		this.CopyOrMove = OperationType.Move;
-		foreach (var item in this.Selected)
+		foreach (FileSystemInfo item in this.Selected)
 		{
 			this.CopyOrMoveSource.Add(item);
 		}
@@ -223,7 +218,7 @@ public partial class FileExplorer
 	public void CopyTo()
 	{
 		this.CopyOrMove = OperationType.Copy;
-		foreach (var item in this.Selected)
+		foreach (FileSystemInfo item in this.Selected)
 		{
 			this.CopyOrMoveSource.Add(item);
 		}
@@ -237,7 +232,7 @@ public partial class FileExplorer
 		{
 			if (this.CopyOrMove == OperationType.Move)
 			{
-				foreach (var thing in this.CopyOrMoveSource)
+				foreach (FileSystemInfo thing in this.CopyOrMoveSource)
 				{
 					string path = thing.FullName;
 
@@ -257,7 +252,7 @@ public partial class FileExplorer
 			}
 			else if (this.CopyOrMove == OperationType.Copy)
 			{
-				foreach (var thing in this.CopyOrMoveSource)
+				foreach (FileSystemInfo thing in this.CopyOrMoveSource)
 				{
 					string path = thing.FullName;
 
@@ -287,7 +282,7 @@ public partial class FileExplorer
 	}
 	public void DeleteSelected()
 	{
-		foreach (var thing in this.Selected)
+		foreach (FileSystemInfo thing in this.Selected)
 		{
 			try
 			{
@@ -318,7 +313,7 @@ public partial class FileExplorer
 			this.SubWindow = WindowType.None;
 			if (this.InputFieldBind.IsNullOrEmpty())
 				goto Final;
-			var target = new DirectoryInfo(this.InputFieldBind);
+			DirectoryInfo target = new(this.InputFieldBind);
 			if (target.Exists)
 			{
 				this.CurrentDirectory = target;
@@ -448,8 +443,8 @@ public partial class FileExplorer
 		bool everFailed = false;
 		for (int i = 0; i < uploadTasks.Count; i++)
 		{
-			var currentTask = uploadTasks[i];
-			var taskSuccess = await currentTask;
+			Task<bool> currentTask = uploadTasks[i];
+			bool taskSuccess = await currentTask;
 			if (taskSuccess == false)
 			{
 				if (!everFailed)
@@ -477,11 +472,11 @@ public partial class FileExplorer
 			using FileStream output = File.Create(outLocation);
 			using ZipOutputStream zipOutput = new(output);
 
-			foreach (var info in this.Selected)
+			foreach (FileSystemInfo info in this.Selected)
 			{
 				if (info is FileInfo fInfo)
 				{
-					var newEntry = new ZipEntry(fInfo.Name)
+					ZipEntry newEntry = new(fInfo.Name)
 					{
 						// Note the zip format stores 2 second granularity
 						DateTime = fInfo.LastWriteTime,
@@ -492,7 +487,7 @@ public partial class FileExplorer
 
 					// Zip the file in buffered chunks
 					// the "using" will close the stream even if an exception occurs
-					var buffer = new byte[4096];
+					byte[] buffer = new byte[4096];
 					using (FileStream fsInput = fInfo.OpenRead())
 					{
 						StreamUtils.Copy(fsInput, zipOutput, buffer);
@@ -516,18 +511,18 @@ public partial class FileExplorer
 
 		static void CompressFolder(DirectoryInfo directory, ZipOutputStream zipStream, string rootEntryName)
 		{
-			var files = directory.GetFiles();
+			FileInfo[] files = directory.GetFiles();
 
-			foreach (var fi in files)
+			foreach (FileInfo fi in files)
 			{
 
 				// Make the name in zip based on the folder
-				var entryName = Path.Combine(rootEntryName, fi.Name);
+				string entryName = Path.Combine(rootEntryName, fi.Name);
 
 				// Remove drive from name and fix slash direction
 				entryName = ZipEntry.CleanName(entryName);
 
-				var newEntry = new ZipEntry(entryName)
+				ZipEntry newEntry = new(entryName)
 				{
 					// Note the zip format stores 2 second granularity
 					DateTime = fi.LastWriteTime,
@@ -538,7 +533,7 @@ public partial class FileExplorer
 
 				// Zip the file in buffered chunks
 				// the "using" will close the stream even if an exception occurs
-				var buffer = new byte[4096];
+				byte[] buffer = new byte[4096];
 				using (FileStream fsInput = File.OpenRead(fi.FullName))
 				{
 					StreamUtils.Copy(fsInput, zipStream, buffer);
@@ -547,8 +542,8 @@ public partial class FileExplorer
 			}
 
 			// Recursively call CompressFolder on all folders in path
-			var folders = directory.GetDirectories();
-			foreach (var folder in folders)
+			DirectoryInfo[] folders = directory.GetDirectories();
+			foreach (DirectoryInfo folder in folders)
 			{
 				CompressFolder(folder, zipStream, Path.Combine(rootEntryName, folder.Name));
 			}

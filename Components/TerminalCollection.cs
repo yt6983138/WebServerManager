@@ -1,5 +1,4 @@
 ﻿using Pty.Net;
-using XtermBlazor;
 
 namespace WebServerManager.Components;
 

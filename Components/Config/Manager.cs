@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Pty.Net;
 using WebServerManager.Components;
-using XtermBlazor;
+using WebServerManager.Components.Generic;
 
 namespace WebServerManager;
 
@@ -15,8 +14,9 @@ public static class Manager
 	public static Dictionary<string, string> Users { get; set; } = new() { { "admin", "D033E22AE348AEB5660FC2140AEC35850C4DA997" } };
 	// default: admin admin
 
+	public static Dictionary<string, Event<EventHandler>> UserEvents { get; set; } = new();
 	public static Dictionary<string, string> ActiveTokens { get; set; } = new();
-	public static Dictionary<string, List<TerminalCollection>> Connections { get; set; } = new(); 
+	public static Dictionary<string, List<TerminalCollection>> Connections { get; set; } = new();
 	static Manager()
 	{
 		try
@@ -38,8 +38,8 @@ public static class Manager
 		}
 		AppDomain.CurrentDomain.ProcessExit += (_, _2) => WriteConfig();
 	}
-	public static void WriteConfig() => 
+	public static void WriteConfig() =>
 		File.WriteAllText(ConfigLocation, JsonConvert.SerializeObject(Config));
-	public static void WriteUsers() => 
+	public static void WriteUsers() =>
 		File.WriteAllText(UserFileLocation, JsonConvert.SerializeObject((Users, SuperUsers)));
 }

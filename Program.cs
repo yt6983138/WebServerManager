@@ -1,10 +1,6 @@
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.Circuits;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Configuration;
-using WebServerManager;
 using WebServerManager.Components.Circuits;
 using yt6983138.Common;
 
@@ -12,7 +8,7 @@ internal class Program
 {
 	private static void Main(string[] args)
 	{
-		var builder = WebApplication.CreateBuilder(args);
+		WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 		builder.Logging.ClearProviders();
 		// builder.Logging.AddConsole();
 
@@ -33,7 +29,7 @@ internal class Program
 		//builder.Services.AddAuthentication(IISDefaults.AuthenticationScheme);
 
 
-		var app = builder.Build();
+		WebApplication app = builder.Build();
 
 		if (!app.Environment.IsDevelopment())
 			// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using System.Text;
+﻿using System.Text;
 
 namespace WebServerManager;
 
@@ -12,7 +11,7 @@ public static class Utils
 	{
 		string? token = httpContextAccessor.HttpContext!.Request.Cookies["token"];
 		string? username = httpContextAccessor.HttpContext!.Request.Cookies["username"];
-		if (!username.IsNullOrEmpty() && Manager.ActiveTokens.TryGetValue(username!, out var _val) && _val == token)
+		if (!username.IsNullOrEmpty() && Manager.ActiveTokens.TryGetValue(username!, out string? _val) && _val == token)
 		{
 			return true;
 		}
@@ -37,7 +36,7 @@ public static class Utils
 	}
 	public static async Task<(bool, TValue)> TryGetOrCreateAsync<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<Task<TValue>> valueGetter)
 	{
-		if (dict.TryGetValue(key, out var value))
+		if (dict.TryGetValue(key, out TValue? value))
 		{
 			return (true, value);
 		}
@@ -55,7 +54,7 @@ public static class Utils
 
 		float[] sizeInOtherUnits = new float[6]; // k, m ,g ...
 		sizeInOtherUnits[0] = sizeInByte * OneThousandAnd24thOf1;
-		for (int i = 1;  i < sizeInOtherUnits.Length; i++)
+		for (int i = 1; i < sizeInOtherUnits.Length; i++)
 		{
 			sizeInOtherUnits[i] = sizeInOtherUnits[i - 1] * OneThousandAnd24thOf1;
 		}
