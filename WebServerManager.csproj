@@ -25,4 +25,10 @@
     <ProjectReference Include="..\yt6983138\yt6983138.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="os64\**">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

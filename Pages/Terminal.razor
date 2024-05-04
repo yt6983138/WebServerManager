@@ -1,6 +1,7 @@
 ﻿@page "/Terminal"
 
 <link href="_content/XtermBlazor/XtermBlazor.min.css" rel="stylesheet" />
+<link href="/css/Terminal.css" rel="stylesheet"/> 
 <script src="_content/XtermBlazor/XtermBlazor.min.js"></script>
 
 <div id="Main">
@@ -8,7 +9,8 @@
 		<Xterm @ref="XTerminal" Options="Options" OnKey="OnKey"></Xterm>
 	</div>
 	<div id="TerminalSelector">
-		<select @onchange=@((e) => NavigationManager.NavigateTo(
+		<label for="TerminalSelection" id="TerminalSelectionDesc" class="Desc">Current terminal</label>
+		<select id="TerminalSelection" @onchange=@((e) => NavigationManager.NavigateTo(
 			$"{NavigationManager.Uri.Substring(0, NavigationManager.Uri.IndexOf("?") > 0 ? NavigationManager.Uri.IndexOf("?") : NavigationManager.Uri.Length)}" + 
 			$"?ReloadTerm={e.Value}"
 			, true))>
@@ -24,7 +26,10 @@
 				}
 			}
 		</select>
+		<hr />
+		<label for="TerminalName" id="TerminalNameDesc" class="Desc">Terminal name</label>
 		<input type="text" id="TerminalName" @bind=CurrentCollectionName />
+		<hr />
 		<button id="NewTerminal" @onclick=CreateTerminalButtonClick>New Terminal</button>
 	</div>
 </div>

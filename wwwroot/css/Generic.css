@@ -60,7 +60,7 @@ select {
 
 option {
     background-image: none;
-    background-color: rgba(0, 0, 0, 25%);
+    background-color: #212121;
     font-size: 22px;
     color: lightgray;
     font-family: 'Saira', Tahoma, Geneva, Verdana, sans-serif;
@@ -70,24 +70,26 @@ option {
     border-radius: 3px;
 }
 
-    option[selected] {
-        appearance: none;
-        -moz-appearance: none;
-        -webkit-appearance: none;
-        background: rgba(0, 0, 0, 25%) !important;
-        font-size: 22px;
-        color: white;
-        font-family: 'Saira', Tahoma, Geneva, Verdana, sans-serif;
-        backdrop-filter: blur(var(--ButtonBlurRadius));
-        border: 1px solid;
-        border-color: var(--BorderColor);
-        border-radius: 3px;
-    }
+option[selected] {
+    background: #414141;
+    font-size: 22px;
+    color: white;
+    font-family: 'Saira', Tahoma, Geneva, Verdana, sans-serif;
+    backdrop-filter: blur(var(--ButtonBlurRadius));
+    border: 1px solid;
+    border-color: var(--BorderColor);
+    border-radius: 3px;
+}
 
-    option[disabled] {
-        background: rgba(0, 0, 0, 25%) !important;
-        color: darkgray;
-    }
+option[disabled] {
+    color: darkgray;
+}
+option[selected][disabled] {
+    background: #707070;
+}
+option:checked, option:hover {
+    background: #707070;
+}
 
 #app {
     padding: 20px 20px 20px 20px;

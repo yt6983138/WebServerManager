@@ -1,0 +1,32 @@
+﻿main {
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    display: flex;
+}
+#Main {
+    margin: 16px;
+    padding: 16px;
+    border: thin;
+    border: 1px solid;
+    border-color: var(--BorderColor);
+    border-radius: 3px;
+}
+#Terminal {
+    margin-bottom: 16px;
+    border: 1px solid;
+    padding: 2px;
+    border-color: var(--BorderColor);
+}
+#TerminalSelector > select, input {
+    display: block;
+    width: 100%;
+}
+#TerminalSelector > label {
+    display: block;
+}
+hr {
+    border-color: var(--BorderColor);
+    margin: 8px 0 8px 0;
+}
